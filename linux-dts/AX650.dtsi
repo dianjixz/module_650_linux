@@ -1,0 +1,2764 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Axera Ax650x SoC
+ *
+ * Copyright (C) 2020, Axera Ltd.
+ */
+#include <dt-bindings/clock/ax650x-clock.h>
+#include <dt-bindings/display/axera_display.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/input/input.h>
+#include "AX650_opptable.dtsi"
+#include "AX650_optee_define.h"
+
+
+/ {
+	compatible = "axera,ax650x";
+	interrupt-parent = <&gic>;
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	aliases {
+		serial0 = &ax_uart0;
+		serial1 = &ax_uart1;
+		serial2 = &ax_uart2;
+		serial3 = &ax_uart3;
+		serial4 = &ax_uart4;
+		serial5 = &ax_uart5;
+		serial6 = &ax_uart6;
+		serial7 = &ax_uart7;
+		serial8 = &ax_uart8;
+		serial9 = &ax_uart9;
+		serial10 = &ax_uart10;
+		spi0 = &spi0;
+		spi1 = &spi1;
+		spi2 = &spi2;
+		spi3 = &spi3;
+		spi4 = &spi4;
+		spi5 = &spif;
+		spi6 = &spislv;
+
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
+		i2c3 = &i2c3;
+		i2c4 = &i2c4;
+		i2c5 = &i2c5;
+		i2c6 = &i2c6;
+		i2c7 = &i2c7;
+		i2c8 = &i2c8;
+		i2c9 = &i2c9;
+		i2c10 = &i2c10;
+		i2c11 = &i2c11;
+		i2c12 = &i2c12;
+		i2c13 = &i2c13;
+		i2c14 = &i2c14;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x0>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_0>;
+			L2_0: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu1: cpu@100 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x100>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_100>;
+			L2_100: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu2: cpu@200 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x200>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_200>;
+			L2_200: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu3: cpu@300 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x300>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_300>;
+			L2_300: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu4: cpu@400 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x400>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_400>;
+			L2_400: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu5: cpu@500 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x500>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_500>;
+			L2_500: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu6: cpu@600 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x600>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_600>;
+			L2_600: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		cpu7: cpu@700 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a55";
+			reg = <0x700>;
+			enable-method = "psci";
+			operating-points-v2 = <&cpu_opp_table>;
+			next-level-cache = <&L2_700>;
+			L2_700: l2-cache {
+				compatible = "cache";
+				next-level-cache = <&L3_0>;
+			};
+		};
+		L3_0: l3-cache0 {
+			compatible = "cache";
+		};
+	};
+	psci {
+		compatible = "arm,psci-1.0";
+		method = "smc";
+	};
+#ifdef OPTEE_BOOT
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+#endif
+	cpufreq: cpufreq {
+		compatible = "ax650,cpufreq";
+		reg = <0x0 0x4516000 0x0 0x40>,
+			<0x0 0x4E10000 0x0 0x1000>;
+		reg-names = "cpu_clk", "pllc_glb";
+		pwms = <&pwm0 1 4167>;
+	};
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>,
+			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>,
+			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>,
+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>;
+		clock_frequency = <24000000>;
+	};
+	gic: interrupt-controller@4900000 {
+		compatible = "arm,gic-400";
+		#interrupt-cells = <3>;
+		#address-cells = <2>;
+		#size-cells = <2>;
+		interrupt-controller;
+		reg = <0x0 0x4901000 0x0 0x1000>,
+		      <0x0 0x4902000 0x0 0x1000>,
+		      <0x0 0x4904000 0x0 0x2000>,
+		      <0x0 0x4906000 0x0 0x2000>;
+	};
+
+	pmu {
+		compatible = "arm,cortex-a55-pmu";
+		interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>,
+			     <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-affinity = <&cpu0>, <&cpu1>, <&cpu2>, <&cpu3>,
+				     <&cpu4>, <&cpu5>, <&cpu6>, <&cpu7>;
+     	};
+	soc {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		compatible = "simple-bus";
+		ranges;
+		/include/ "AX650_resets.dtsi"
+
+		comm_ck: comm_ck@4210000 {
+			compatible = "axera,ax650x-common-clk", "syscon";
+			reg = <0x0 0x4210000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		cpu_ck: cpu_ck@4516000 {
+			compatible = "axera,ax650x-cpu-clk", "syscon";
+			reg = <0x0 0x4516000 0x0 0x400>;
+			#clock-cells = <1>;
+		};
+
+		ddr_ck: ddr_ck@8010000 {
+			compatible = "axera,ax650x-ddr-clk", "syscon";
+			reg = <0x0 0x8010000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		flash_ck: flash_ck@110000 {
+			compatible = "axera,ax650x-flash-clk", "syscon";
+			reg = <0x0 0x110000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		isp_ck: isp_ck@12801000 {
+			compatible = "axera,ax650x-isp-clk", "syscon";
+			reg = <0x0 0x12801000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		mm_ck: mm_ck@10010000 {
+			compatible = "axera,ax650x-mm-clk", "syscon";
+			reg = <0x0 0x10010000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		mm_core_ck: mm_core_ck@10102000 {
+			compatible = "axera,ax650x-mm-core-clk", "syscon";
+			reg = <0x0 0x10102000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		mm_phy_ck: mm_phy_ck@10014000 {
+			compatible = "axera,ax650x-mm-phy-clk", "syscon";
+			reg = <0x0 0x10014000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		nn_ck: nn_ck@16550000 {
+			compatible = "axera,ax650x-nn-clk", "syscon";
+			reg = <0x0 0x16550000 0x0 0x10000>;
+			#clock-cells = <1>;
+		};
+
+		periph_ck: periph_ck@2002000 {
+			compatible = "axera,ax650x-periph-clk", "syscon";
+			reg = <0x0 0x2002000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		pipe_ck: pipe_ck@30010000 {
+			compatible = "axera,ax650x-pipe-clk", "syscon";
+			reg = <0x0 0x30010000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		pipe_phy_ck: pipe_phy_ck@30710000 {
+			compatible = "axera,ax650x-pipe-phy-clk", "syscon";
+			reg = <0x0 0x30710000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		pllc_ck: pllc_ck@4E10000 {
+			compatible = "axera,ax650x-pllc-clk", "syscon";
+			reg = <0x0 0x4E10000 0x0 0x10000>;
+			#clock-cells = <1>;
+		};
+
+		sec_ck: sec_ck@400F000 {
+			compatible = "axera,ax650x-sec-clk", "syscon";
+			reg = <0x0 0x400F000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		sen_ck: sen_ck@1300C000 {
+			compatible = "axera,ax650x-sen-clk", "syscon";
+			reg = <0x0 0x1300C000 0x0 0x400>;
+			#clock-cells = <1>;
+		};
+
+		sen_phy_ck: sen_phy_ck@13D84000 {
+			compatible = "axera,ax650x-sen-phy-clk", "syscon";
+			reg = <0x0 0x13D84000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdec_ck: vdec_ck@19001000 {
+			compatible = "axera,ax650x-vdec-clk", "syscon";
+			reg = <0x0 0x19001000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdsp_ck: vdsp_ck@18002000 {
+			compatible = "axera,ax650x-vdsp-clk", "syscon";
+			reg = <0x0 0x18002000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		venc_ck: venc_ck@1A001000 {
+			compatible = "axera,ax650x-venc-clk", "syscon";
+			reg = <0x0 0x1A001000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		mm_tdp_ck: mm_tdp_ck@12080110 {
+			compatible = "axera,ax650x-mm-tdp-clk", "syscon";
+			reg = <0x0 0x12080110 0x0 0x10>;
+			#clock-cells = <1>;
+		};
+
+		mm_vpp_ck: mm_vpp_ck@120C0150 {
+			compatible = "axera,ax650x-mm-vpp-clk", "syscon";
+			reg = <0x0 0x120C0150 0x0 0x10>;
+			#clock-cells = <1>;
+		};
+
+		npu: ax_npu@0x16400000 {
+			compatible = "axera,npu";
+			reg = <0x0 0x16400000 0x0 0xf0000>,
+			      <0x0 0x14000000 0x0 0xa00000>;
+			status = "okay";
+			interrupt-parent = <&gic>;
+			interrupts = <GIC_SPI 63 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 89 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 91 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 114 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 115 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 22 IRQ_TYPE_EDGE_RISING>,
+				     <GIC_SPI 20 IRQ_TYPE_EDGE_RISING>;
+			clocks = <&comm_ck AX650X_GPLL_24M>,
+				 <&comm_ck AX650X_EPLL_300M>,
+				 <&comm_ck AX650X_EPLL_500M_60>,
+				 <&comm_ck AX650X_MPLL_700M_270>,
+				 <&comm_ck AX650X_EPLL_750M>,
+				 <&comm_ck AX650X_NAPLL_800M>,
+				 <&comm_ck AX650X_GPLL_1248M>,
+				 <&comm_ck AX650X_MPLL_1400M>,
+				 <&comm_ck AX650X_EPLL_1500M>,
+				 <&comm_ck AX650X_NAPLL_2400M>;
+			clock-names = "gpll_24", "epll_300", "epll_500", "mpll_700", "epll_750", "napll_800",
+				"gpll_1248", "mpll_1400", "epll_1500", "napll_2400";
+			operating-points-v2 = <&npu_opp_table>;
+		};
+
+		sys {
+			compatible = "axera,sys";
+		};
+
+		avs {
+			compatible = "axera,avs";
+		};
+
+
+		ax_sysmap {
+			compatible = "axera,ax_sysmap";
+		};
+
+		axera_hrtimer: axera_hrtimer@200a000 {
+			compatible = "axera,hrtimer";
+			reg = <0x0 0x200a000 0x0 0x400>;
+			interrupts = <0 146 4>;
+			status = "okay";
+		};
+
+		timer1: dw_apb_timer@200b000 {
+			compatible = "axera,dw-apb-timer";
+			reg = <0x0 0x200b000 0x0 0x400>;
+			resets = <&periph_reset_ext 17 0x90 17 0x94>,
+				 <&periph_reset_ext 13 0x90 13 0x94>,
+				 <&periph_reset_ext 14 0x90 14 0x94>,
+				 <&periph_reset_ext 15 0x90 15 0x94>,
+				 <&periph_reset_ext 16 0x90 16 0x94>;
+			reset-names = "preset",
+				"timer-ch0-reset", "timer-ch1-reset",
+				"timer-ch2-reset", "timer-ch3-reset";
+			clocks = <&periph_ck AX650X_PCLK_TMR1>,
+				 <&periph_ck AX650X_CLK_TMR11>,
+				 <&periph_ck AX650X_CLK_TMR12>,
+				 <&periph_ck AX650X_CLK_TMR13>,
+				 <&periph_ck AX650X_CLK_TMR14>;
+			clock-names = "pclk",
+				"timer-ch0-clk", "timer-ch1-clk",
+				"timer-ch2-clk", "timer-ch3-clk";
+			interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "tmr_irq";
+			timer_index = <1>;
+			status = "disabled";
+		};
+
+		timer2: dw_apb_timer@200c000 {
+			compatible = "axera,dw-apb-timer";
+			reg = <0x0 0x200c000 0x0 0x400>;
+			resets = <&periph_reset_ext 22 0x90 22 0x94>,
+				 <&periph_reset_ext 18 0x90 18 0x94>,
+				 <&periph_reset_ext 19 0x90 19 0x94>,
+				 <&periph_reset_ext 20 0x90 20 0x94>,
+				 <&periph_reset_ext 21 0x90 21 0x94>;
+			reset-names = "preset",
+				"timer-ch0-reset", "timer-ch1-reset",
+				"timer-ch2-reset", "timer-ch3-reset";
+			clocks = <&periph_ck AX650X_PCLK_TMR2>,
+				 <&periph_ck AX650X_CLK_TMR21>,
+				 <&periph_ck AX650X_CLK_TMR22>,
+				 <&periph_ck AX650X_CLK_TMR23>,
+				 <&periph_ck AX650X_CLK_TMR24>;
+			clock-names = "pclk",
+				"timer-ch0-clk", "timer-ch1-clk",
+				"timer-ch2-clk", "timer-ch3-clk";
+			interrupts = <GIC_SPI 148 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "tmr_irq";
+			timer_index = <2>;
+			status = "disabled";
+		};
+
+		timer3: dw_apb_timer@200d000 {
+			compatible = "axera,dw-apb-timer";
+			reg = <0x0 0x200d000 0x0 0x400>;
+			resets = <&periph_reset_ext 27 0x90 27 0x94>,
+				 <&periph_reset_ext 23 0x90 23 0x94>,
+				 <&periph_reset_ext 24 0x90 24 0x94>,
+				 <&periph_reset_ext 25 0x90 25 0x94>,
+				 <&periph_reset_ext 26 0x90 26 0x94>;
+			reset-names = "preset",
+				"timer-ch0-reset", "timer-ch1-reset",
+				"timer-ch2-reset", "timer-ch3-reset";
+			clocks = <&periph_ck AX650X_PCLK_TMR3>,
+				 <&periph_ck AX650X_CLK_TMR31>,
+				 <&periph_ck AX650X_CLK_TMR32>,
+				 <&periph_ck AX650X_CLK_TMR33>,
+				 <&periph_ck AX650X_CLK_TMR34>;
+			clock-names = "pclk",
+				"timer-ch0-clk", "timer-ch1-clk",
+				"timer-ch2-clk", "timer-ch3-clk";
+			interrupts = <GIC_SPI 149 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "tmr_irq";
+			timer_index = <3>;
+			status = "disabled";
+		};
+
+		timer4: dw_apb_timer@200e000 {
+			compatible = "axera,dw-apb-timer";
+			reg = <0x0 0x200e000 0x0 0x400>;
+			resets = <&periph_reset_ext 0 0x98 0 0x9c>,
+				 <&periph_reset_ext 28 0x90 28 0x94>,
+				 <&periph_reset_ext 29 0x90 29 0x94>,
+				 <&periph_reset_ext 30 0x90 30 0x94>,
+				 <&periph_reset_ext 31 0x90 31 0x94>;
+			reset-names = "preset",
+				"timer-ch0-reset", "timer-ch1-reset",
+				"timer-ch2-reset", "timer-ch3-reset";
+			clocks = <&periph_ck AX650X_PCLK_TMR4>,
+				 <&periph_ck AX650X_CLK_TMR41>,
+				 <&periph_ck AX650X_CLK_TMR42>,
+				 <&periph_ck AX650X_CLK_TMR43>,
+				 <&periph_ck AX650X_CLK_TMR44>;
+			clock-names = "pclk",
+				"timer-ch0-clk", "timer-ch1-clk",
+				"timer-ch2-clk", "timer-ch3-clk";
+			interrupts = <GIC_SPI 150 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "tmr_irq";
+			timer_index = <4>;
+			status = "disabled";
+		};
+
+		timer5: dw_apb_timer@200f000 {
+			compatible = "axera,dw-apb-timer";
+			reg = <0x0 0x200f000 0x0 0x400>;
+			resets = <&periph_reset_ext 5 0x98 5 0x9c>,
+				 <&periph_reset_ext 1 0x98 1 0x9c>,
+				 <&periph_reset_ext 2 0x98 2 0x9c>,
+				 <&periph_reset_ext 3 0x98 3 0x9c>,
+				 <&periph_reset_ext 4 0x98 4 0x9c>;
+			reset-names = "preset",
+				"timer-ch0-reset", "timer-ch1-reset",
+				"timer-ch2-reset", "timer-ch3-reset";
+			clocks = <&periph_ck AX650X_PCLK_TMR5>,
+				 <&periph_ck AX650X_CLK_TMR51>,
+				 <&periph_ck AX650X_CLK_TMR52>,
+				 <&periph_ck AX650X_CLK_TMR53>,
+				 <&periph_ck AX650X_CLK_TMR54>;
+			clock-names = "pclk",
+				"timer-ch0-clk", "timer-ch1-clk",
+				"timer-ch2-clk", "timer-ch3-clk";
+			interrupts = <GIC_SPI 151 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "tmr_irq";
+			timer_index = <5>;
+			status = "disabled";
+		};
+
+		sysclk: clk10000000 {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <10000000>;
+			clock-output-names = "sysclk";
+		};
+
+		dmaxor: ax_dmaxor@30830000 {
+			compatible = "axera,axi-dmaxor";
+			reg = <0x0 0x30830000 0x0 0x200>;
+			#dma-cells = <1>;
+			dma-channels = <32>;
+			ax,data-width = <3>;
+			ax,max-burst-len = <32>;
+			clocks = <&pipe_ck AX650X_CLK_DMA2>;
+			clock-names = "dmaxor-clk";
+			interrupts = <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH>;
+			resets = <&pipe_reset_ext 1 0x38 1 0x3c>;
+			reset-names = "dmaxor-rst";
+			status = "disabled";
+		};
+
+		dmaxor_dev: ax_dmaxor_dev@0000000 {
+			compatible = "axera,dmaxor";
+			#dma-cells = <1>;
+			dma-channels = <1>;
+			status = "disabled";
+		};
+
+		dmadim: dmadim@30810000 {
+			compatible = "axera,dmadim";
+			reg = <0x0 0x30810000 0x0 0x200>;
+			interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&pipe_ck AX650X_CLK_DMA0>;
+			clock-names = "dmadim-clk";
+			resets = <&pipe_reset_ext 0 0x38 0 0x3c>;
+			reset-names = "dmadim-rst";
+			status = "disabled";
+		};
+
+		wdt0: watchdog@4e05000 {
+			compatible = "axera,ax-wdt";
+			reg = <0x0 0x4e05000 0x0 0x100>;
+			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&comm_ck AX650X_PCLK_WDT0>,
+				 <&comm_ck AX650X_CLK_WDT0>;
+			clock-names = "wdt-pclk", "wdt-clk";
+			clock-frequency = <24000000>;
+			keep-alive = <24000000 175>;
+			status = "disabled";
+		};
+
+		ax_uart0: ax_uart@2016000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x2016000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART0>,
+				 <&periph_ck AX650X_PCLK_UART0>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 7 0x98 7 0x9c>,
+				 <&periph_reset_ext 6 0x98 6 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 135 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart1: ax_uart@2017000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x2017000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART1>,
+				 <&periph_ck AX650X_PCLK_UART1>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 11 0x98 11 0x9c>,
+				 <&periph_reset_ext 10 0x98 10 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 136 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart2: ax_uart@2018000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x2018000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART2>,
+				 <&periph_ck AX650X_PCLK_UART2>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 13 0x98 13 0x9c>,
+				 <&periph_reset_ext 12 0x98 12 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 137 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart3: ax_uart@2019000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x2019000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART3>,
+				 <&periph_ck AX650X_PCLK_UART3>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 15 0x98 15 0x9c>,
+				 <&periph_reset_ext 14 0x98 14 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart4: ax_uart@201a00 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201a000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART4>,
+				 <&periph_ck AX650X_PCLK_UART4>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 17 0x98 17 0x9c>,
+				 <&periph_reset_ext 16 0x98 16 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart5: ax_uart@201b000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201b000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART5>,
+				 <&periph_ck AX650X_PCLK_UART5>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 19 0x98 19 0x9c>,
+				 <&periph_reset_ext 18 0x98 18 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 140 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart6: ax_uart@201c000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201c000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART6>,
+				 <&periph_ck AX650X_PCLK_UART6>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 21 0x98 21 0x9c>,
+				 <&periph_reset_ext 20 0x98 20 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 141 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart7: ax_uart@201d000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201d000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART7>,
+				 <&periph_ck AX650X_PCLK_UART7>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 23 0x98 23 0x9c>,
+				 <&periph_reset_ext 22 0x98 22 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 142 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart8: ax_uart@201e000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201e000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART8>,
+				 <&periph_ck AX650X_PCLK_UART8>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 25 0x98 25 0x9c>,
+				 <&periph_reset_ext 24 0x98 24 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart9: ax_uart@201f000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x201f000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART9>,
+				 <&periph_ck AX650X_PCLK_UART9>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 27 0x98 27 0x9c>,
+				 <&periph_reset_ext 26 0x98 26 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		ax_uart10: ax_uart@2020000 {
+			compatible = "axera,ax-apb-uart";
+			reg = <0x0 0x2020000 0x0 0x400>;
+			reg-shift = <2>;
+			reg-io-width = <4>;
+			clocks = <&periph_ck AX650X_CLK_UART10>,
+				 <&periph_ck AX650X_PCLK_UART10>;
+			clock-names = "baudclk", "apb_pclk";
+			resets = <&periph_reset_ext 9 0x98 9 0x9c>,
+				 <&periph_reset_ext 8 0x98 8 0x9c>;
+			reset-names = "reset", "preset";
+			default_cpr_reg = <0x425F2>;
+			interrupts = <GIC_SPI 145 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		emmc: sdhc@28000000 {
+			compatible = "axera,sdhc-ax650";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			reg = <0x0 0x28000000 0x0 0x600>;
+			interrupts = <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&flash_ck AX650X_ACLK_EMMC>,
+					<&flash_ck AX650X_HCLK_EMMC>,
+					<&flash_ck AX650X_CCLK_TX_EMMC_DIVN>;
+			clock-names = "aclk","hclk","cardclk";
+			resets = <&flash_reset_ext 2 0x38 2 0x3c>,
+				 <&flash_reset_ext 6 0x38 6 0x3c>,
+				 <&flash_reset_ext 7 0x38 7 0x3c>;
+			reset-names = "arst","crst","hrst";
+			status = "disabled";
+		};
+
+		sd: sdhc@30E00000 {
+			compatible = "axera,sdhc-ax650";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			reg = <0x0 0x30E00000 0x0 0x600>;
+			interrupts = <GIC_SPI 177 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&pipe_ck AX650X_ACLK_PP_SDIO>,
+					<&pipe_ck AX650X_HCLK_PP_SDIO>,
+					<&pipe_ck AX650X_CCLK_TX_PP_SDIO_DIVN>;
+			clock-names = "aclk","hclk","cardclk";
+			resets = <&pipe_reset_ext 12 0x38 12 0x3c>,
+				<&pipe_reset_ext 16 0x38 16 0x3c>,
+				<&pipe_reset_ext 17 0x38 17 0x3c>;
+			reset-names = "arst","crst","hrst";
+			status = "disabled";
+		};
+
+		sdio: sdhc@28001000 {
+			compatible = "axera,sdhc-ax650";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			reg = <0x0 0x28001000 0x0 0x600>;
+			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&flash_ck AX650X_ACLK_FLS_SDIO>,
+					<&flash_ck AX650X_HCLK_FLS_SDIO>,
+					<&flash_ck AX650X_CCLK_TX_FLS_SDIO_DIVN>;
+			clock-names = "aclk","hclk","cardclk";
+			resets = <&flash_reset_ext 14 0x38 14 0x3c>,
+				<&flash_reset_ext 18 0x38 18 0x3c>,
+				<&flash_reset_ext 19 0x38 19 0x3c>;
+			reset-names = "arst","crst","hrst";
+			status = "disabled";
+		};
+		dmac: dw_dmac@120000 {
+			compatible = "axera,axi-dma-1.01a";
+			reg-num = <3>;
+			reg = <0x0 0x120000 0x0 0x10000>,
+			      <0x0 0x4200000 0x0 0x1000>;
+			#dma-cells = <1>;
+			dma-channels = <8>;
+			snps,dma-masters = <2>;
+			snps,data-width = <3>;
+			snps,block-size = <0x400000 0x400000 0x400000 0x400000 0x400000 0x400000 0x400000 0x400000>;
+			snps,priority = <1 1 1 1 1 1 1 1>;
+			snps,axi-max-burst-len = <256>;
+			clocks = <&flash_ck AX650X_CLK_DMA>;
+			clock-names = "dmac-clk";
+			resets = <&flash_reset_ext 0 0x38 0 0x3c>;
+			reset-names = "dmac-rst";
+			interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
+			status = "disabled";
+		};
+		dwgpio0: gpio@0x2003000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x2003000 0x0 0x400>;
+			clocks = <&periph_ck AX650X_CLK_GPIO0>, <&periph_ck AX650X_PCLK_GPIO0>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&periph_reset_ext 0 0x78 0 0x7c>, <&periph_reset_ext 1 0x78 1 0x7c>;
+			reset-names = "gpio_prst", "gpio_rst";
+			hwlock_id = <12>;
+			status = "okay";
+			port0a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 4 1>, <&pinctrl_ax 1 5 1>, <&pinctrl_ax 2 6 1>,
+				<&pinctrl_ax 3 7 1>, <&pinctrl_ax 4 89 1>,  <&pinctrl_ax 5 90 1>,
+				<&pinctrl_ax 6 12 1>,  <&pinctrl_ax 7 13 1>,  <&pinctrl_ax 8 14 1>,
+				<&pinctrl_ax 9 15 1>,  <&pinctrl_ax 10 22 1>, <&pinctrl_ax 11 23 1>,
+				<&pinctrl_ax 12 24 1>, <&pinctrl_ax 13 25 1>, <&pinctrl_ax 14 26 1>,
+				<&pinctrl_ax 15 27 1>, <&pinctrl_ax 16 16 1>, <&pinctrl_ax 17 17 1>,
+				<&pinctrl_ax 18 18 1>, <&pinctrl_ax 19 19 1>, <&pinctrl_ax 20 20 1>,
+				<&pinctrl_ax 21 21 1>, <&pinctrl_ax 22 28 1>, <&pinctrl_ax 23 29 1>,
+				<&pinctrl_ax 24 30 1>, <&pinctrl_ax 25 31 1>, <&pinctrl_ax 26 42 1>,
+				<&pinctrl_ax 27 43 1>, <&pinctrl_ax 28 44 1>, <&pinctrl_ax 29 45 1>,
+				<&pinctrl_ax 30 46 1>, <&pinctrl_ax 31 47 1>;
+				interrupts = <GIC_SPI 158 IRQ_TYPE_LEVEL_HIGH>;
+				#gpio-cells = <2>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		dwgpio1: gpio@0x2004000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x2004000 0x0 0x400>;
+			clocks = <&periph_ck AX650X_CLK_GPIO1>, <&periph_ck AX650X_PCLK_GPIO1>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&periph_reset_ext 2 0x78 2 0x7c>, <&periph_reset_ext 3 0x78 3 0x7c>;
+			reset-names = "gpio_prst","gpio_rst";
+			status = "okay";
+			port1a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 48 1>, <&pinctrl_ax 1 49 1>, <&pinctrl_ax 2 167 1>,
+				<&pinctrl_ax 3 168 1>, <&pinctrl_ax 4 139 1>, <&pinctrl_ax 5 140 1>,
+				<&pinctrl_ax 6 141 1>, <&pinctrl_ax 7 142 1>, <&pinctrl_ax 8 142 1>,
+				<&pinctrl_ax 9 144 1>, <&pinctrl_ax 10 77 1>, <&pinctrl_ax 11 76 1>,
+				<&pinctrl_ax 12 75 1>, <&pinctrl_ax 13 74 1>, <&pinctrl_ax 14 73 1>,
+				<&pinctrl_ax 15 72 1>, <&pinctrl_ax 16 71 1>, <&pinctrl_ax 17 70 1>,
+				<&pinctrl_ax 18 69 1>, <&pinctrl_ax 19 68 1>, <&pinctrl_ax 20 67 1>,
+				<&pinctrl_ax 21 66 1>, <&pinctrl_ax 22 65 1>, <&pinctrl_ax 23 64 1>,
+				<&pinctrl_ax 24 63 1>, <&pinctrl_ax 25 62 1>, <&pinctrl_ax 26 50 1>,
+				<&pinctrl_ax 27 51 1>, <&pinctrl_ax 28 52 1>, <&pinctrl_ax 29 53 1>,
+				<&pinctrl_ax 30 54 1>, <&pinctrl_ax 31 174 1>;
+				interrupts = <GIC_SPI 159 IRQ_TYPE_LEVEL_HIGH>;
+				#gpio-cells = <2>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		dwgpio2: gpio@0x2005000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x2005000 0x0 0x400>;
+			clocks = <&periph_ck AX650X_CLK_GPIO2>, <&periph_ck AX650X_PCLK_GPIO2>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&periph_reset_ext 4 0x78 4 0x7c>, <&periph_reset_ext 5 0x78 5 0x7c>;
+			reset-names = "gpio_prst","gpio_rst";
+			status = "okay";
+			port2a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 78 1>, <&pinctrl_ax 1 79 1>, <&pinctrl_ax 2 80 1>,
+				<&pinctrl_ax 3 81 1>, <&pinctrl_ax 4 82 1>,  <&pinctrl_ax 5 111 1>,
+				<&pinctrl_ax 6 112 1>, <&pinctrl_ax 7 113 1>, <&pinctrl_ax 8 114 1>,
+				<&pinctrl_ax 9 91 1>,  <&pinctrl_ax 10 92 1>, <&pinctrl_ax 11 93 1>,
+				<&pinctrl_ax 12 94 1>, <&pinctrl_ax 13 95 1>, <&pinctrl_ax 14 96 1>,
+				<&pinctrl_ax 15 97 1>, <&pinctrl_ax 16 98 1>, <&pinctrl_ax 17 99 1>,
+				<&pinctrl_ax 18 100 1>, <&pinctrl_ax 19 101 1>, <&pinctrl_ax 20 102 1>,
+				<&pinctrl_ax 21 10 1>, <&pinctrl_ax 22 11 1>, <&pinctrl_ax 23 83 1>,
+				<&pinctrl_ax 24 84 1>, <&pinctrl_ax 25 85 1>, <&pinctrl_ax 26 86 1>,
+				<&pinctrl_ax 27 87 1>, <&pinctrl_ax 28 88 1>, <&pinctrl_ax 29 151 1>,
+				<&pinctrl_ax 30 152 1>, <&pinctrl_ax 31 153 1>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				interrupts = <GIC_SPI 160 IRQ_TYPE_LEVEL_HIGH>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		dwgpio3: gpio@0x2006000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x2006000 0x0 0x400>;
+			clocks = <&periph_ck AX650X_CLK_GPIO3>, <&periph_ck AX650X_PCLK_GPIO3>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&periph_reset_ext 6 0x78 6 0x7c>, <&periph_reset_ext 7 0x78 7 0x7c>;
+			reset-names = "gpio_prst","gpio_rst";
+			status = "okay";
+			port3a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 154 1>, <&pinctrl_ax 1 155 1>, <&pinctrl_ax 2 156 1>,
+				<&pinctrl_ax 3 157 1>, <&pinctrl_ax 4 158 1>, <&pinctrl_ax 5 159 1>,
+				<&pinctrl_ax 6 160 1>, <&pinctrl_ax 7 161 1>, <&pinctrl_ax 8 162 1>,
+				<&pinctrl_ax 9 145 1>, <&pinctrl_ax 10 146 1>, <&pinctrl_ax 11 147 1>,
+				<&pinctrl_ax 12 148 1>, <&pinctrl_ax 13 149 1>, <&pinctrl_ax 14 150 1>,
+				<&pinctrl_ax 15 1 1>, <&pinctrl_ax 16 2 1>, <&pinctrl_ax 17 3 1>,
+				<&pinctrl_ax 18 9 1>, <&pinctrl_ax 19 173 1>, <&pinctrl_ax 20 182 1>,
+				<&pinctrl_ax 21 183 1>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				interrupts = <GIC_SPI 161 IRQ_TYPE_LEVEL_HIGH>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		dwgpio4: gpio@0x2007000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x2007000 0x0 0x400>;
+			clocks = <&periph_ck AX650X_CLK_GPIO4>, <&periph_ck AX650X_PCLK_GPIO4>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&periph_reset_ext 8 0x78 8 0x7c>, <&periph_reset_ext 9 0x78 9 0x7c>;
+			reset-names = "gpio_prst","gpio_rst";
+			status = "okay";
+			port4a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 32 1>, <&pinctrl_ax 1 33 1>, <&pinctrl_ax 2 34 1>,
+				<&pinctrl_ax 3 35 1>, <&pinctrl_ax 4 36 1>, <&pinctrl_ax 5 37 1>,
+				<&pinctrl_ax 6 38 1>, <&pinctrl_ax 7 39 1>, <&pinctrl_ax 8 55 1>,
+				<&pinctrl_ax 9 56 1>, <&pinctrl_ax 10 57 1>, <&pinctrl_ax 11 58 1>,
+				<&pinctrl_ax 12 59 1>, <&pinctrl_ax 13 60 1>, <&pinctrl_ax 14 61 1>,
+				<&pinctrl_ax 15 175 1>, <&pinctrl_ax 16 176 1>, <&pinctrl_ax 17 177 1>,
+				<&pinctrl_ax 18 178 1>, <&pinctrl_ax 19 40 1>, <&pinctrl_ax 20 41 1>,
+				<&pinctrl_ax 21 163 1>, <&pinctrl_ax 22 164 1>, <&pinctrl_ax 23 162 1>,
+				<&pinctrl_ax 24 166 1>, <&pinctrl_ax 25 169 1>, <&pinctrl_ax 26 170 1>,
+				<&pinctrl_ax 27 171 1>, <&pinctrl_ax 28 172 1>, <&pinctrl_ax 29 179 1>,
+				<&pinctrl_ax 30 180 1>, <&pinctrl_ax 31 182 1>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				interrupts = <GIC_SPI 162 IRQ_TYPE_LEVEL_HIGH>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		dwgpio7: gpio@0x4e00000 {
+			compatible = "snps,ax-apb-gpio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0 0x4e00000 0x0 0x400>;
+			clocks = <&comm_ck AX650X_CLK_GPIO>, <&comm_ck AX650X_PCLK_GPIO>;
+			clock-names = "clk_gpio", "pclk_gpio";
+			resets = <&comm_reset_ext 8 0x60 8 0x64>, <&comm_reset_ext 9 0x60 9 0x64>;
+			reset-names = "gpio_prst","gpio_rst";
+			status = "okay";
+			port7a: gpio-controller@0 {
+				compatible = "snps,dw-apb-gpio-port";
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-ranges = <&pinctrl_ax 0 127 1>, <&pinctrl_ax 1 128 1>, <&pinctrl_ax 2 129 1>,
+				<&pinctrl_ax 3 130 1>, <&pinctrl_ax 4 131 1>,  <&pinctrl_ax 5 132 1>,
+				<&pinctrl_ax 6 133 1>,  <&pinctrl_ax 7 134 1>, <&pinctrl_ax 8 135 1>,
+				<&pinctrl_ax 9 136 1>,  <&pinctrl_ax 10 137 1>, <&pinctrl_ax 11 138 1>,
+				<&pinctrl_ax 12 115 1>, <&pinctrl_ax 13 116 1>, <&pinctrl_ax 14 117 1>,
+				<&pinctrl_ax 15 118 1>, <&pinctrl_ax 16 119 1>, <&pinctrl_ax 17 120 1>,
+				<&pinctrl_ax 18 121 1>, <&pinctrl_ax 19 122 1>, <&pinctrl_ax 20 123 1>,
+				<&pinctrl_ax 21 124 1>, <&pinctrl_ax 22 125 1>, <&pinctrl_ax 23 126 1>,
+				<&pinctrl_ax 24 103 1>, <&pinctrl_ax 25 104 1>, <&pinctrl_ax 26 105 1>,
+				<&pinctrl_ax 27 106 1>, <&pinctrl_ax 28 107 1>, <&pinctrl_ax 29 108 1>,
+				<&pinctrl_ax 30 109 1>, <&pinctrl_ax 31 110 1>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+				interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+				snps,nr-gpios = <32>;
+				reg = <0>;
+			};
+		};
+		i2c0: i2c@2021000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2021000 0x0 0x400>;
+			interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C0>,
+				 <&periph_ck AX650X_CLK_I2C0>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 16 0x78 16 0x7c>,
+				<&periph_reset_ext 17 0x78 17 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c1: i2c@2022000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2022000 0x0 0x400>;
+			interrupts = <GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C1>,
+				 <&periph_ck AX650X_CLK_I2C1>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 28 0x78 28 0x7c>,
+				<&periph_reset_ext 29 0x78 29 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c2: i2c@2023000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2023000 0x0 0x400>;
+			interrupts = <GIC_SPI 122 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C2>,
+				 <&periph_ck AX650X_CLK_I2C2>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 30 0x78 30 0x7c>,
+				<&periph_reset_ext 31 0x78 31 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c3: i2c@2024000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2024000 0x0 0x400>;
+			interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C3>,
+				 <&periph_ck AX650X_CLK_I2C3>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 0 0x80 0 0x84>,
+				<&periph_reset_ext 1 0x80 1 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c4: i2c@2025000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2025000 0x0 0x400>;
+			interrupts = <GIC_SPI 124 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C4>,
+				 <&periph_ck AX650X_CLK_I2C4>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 2 0x80 2 0x84>,
+				<&periph_reset_ext 3 0x80 3 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c5: i2c@2026000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2026000 0x0 0x400>;
+			interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C5>,
+				 <&periph_ck AX650X_CLK_I2C5>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 4 0x80 4 0x84>,
+				<&periph_reset_ext 5 0x80 5 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c6: i2c@2027000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2027000 0x0 0x400>;
+			interrupts = <GIC_SPI 126 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C6>,
+				 <&periph_ck AX650X_CLK_I2C6>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 6 0x80 6 0x84>,
+				<&periph_reset_ext 7 0x80 7 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c7: i2c@2028000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2028000 0x0 0x400>;
+			interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C7>,
+				 <&periph_ck AX650X_CLK_I2C7>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 8 0x80 8 0x84>,
+				<&periph_reset_ext 9 0x80 9 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c8: i2c@2029000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x2029000 0x0 0x400>;
+			interrupts = <GIC_SPI 128 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C8>,
+				 <&periph_ck AX650X_CLK_I2C8>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 10 0x80 10 0x84>,
+				<&periph_reset_ext 11 0x80 11 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c9: i2c@202a000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202a000 0x0 0x400>;
+			interrupts = <GIC_SPI 129 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C9>,
+				 <&periph_ck AX650X_CLK_I2C9>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 12 0x80 12 0x84>,
+				<&periph_reset_ext 13 0x80 13 0x84>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c10: i2c@202b000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202b000 0x0 0x400>;
+			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C10>,
+				 <&periph_ck AX650X_CLK_I2C10>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 18 0x78 18 0x7c>,
+				<&periph_reset_ext 19 0x78 19 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6A>;
+			status = "disabled";
+		};
+		i2c11: i2c@202c000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202c000 0x0 0x400>;
+			interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C11>,
+				 <&periph_ck AX650X_CLK_I2C11>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 20 0x78 20 0x7c>,
+				<&periph_reset_ext 21 0x78 21 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6E>;
+			status = "disabled";
+		};
+		i2c12: i2c@202d000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202d000 0x0 0x400>;
+			interrupts = <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C12>,
+				 <&periph_ck AX650X_CLK_I2C12>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 22 0x78 22 0x7c>,
+				<&periph_reset_ext 23 0x78 23 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6E>;
+			status = "disabled";
+		};
+		i2c13: i2c@202e000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202e000 0x0 0x400>;
+			interrupts = <GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C13>,
+				 <&periph_ck AX650X_CLK_I2C13>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 24 0x78 24 0x7c>,
+				<&periph_reset_ext 25 0x78 25 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6E>;
+			status = "disabled";
+		};
+		i2c14: i2c@202f000 {
+			compatible = "snps,designware-i2c";
+			reg = <0x0 0x202f000 0x0 0x400>;
+			interrupts = <GIC_SPI 134 IRQ_TYPE_LEVEL_HIGH>;
+			clock-frequency = <400000>;
+			i2c-sda-hold-time-ns = <500>;
+			clocks = <&periph_ck AX650X_PCLK_I2C14>,
+				 <&periph_ck AX650X_CLK_I2C14>;
+			clock-names = "pclk", "clk";
+			resets = <&periph_reset_ext 26 0x78 26 0x7c>,
+				<&periph_reset_ext 27 0x78 27 0x7c>;
+			reset-names = "prst","rst";
+			default_param_reg = <0xFFFF6E>;
+			status = "disabled";
+		};
+		mailbox: mailbox@0x452C000{
+			compatible = "axera,mailbox";
+			reg = <0x0 0x452C000 0x0 0x1000>;
+			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&comm_ck AX650X_PCLK_MAILBOX>;
+			clock-names = "pclk";
+			resets = <&comm_reset_ext 10 0x60 10 0x64>;
+			reset-names = "mb_rst";
+			status = "okay";
+		};
+
+		riscv: riscv {
+			compatible = "axera,riscv";
+			status = "okay";
+		};
+
+		vdsp: vdsp@0x18000000 {
+			compatible = "axera,vdsp-q7";
+			reg = <0x0 0x18000000 0x0 0x80000>;
+			reg-names = "vdsp_glb";
+			clocks = <&vdsp_ck AX650X_CLK_VDSP_BUS_SEL>,
+				<&vdsp_ck AX650X_CLK_VDSP0>,
+				<&vdsp_ck AX650X_CLK_VDSP1>,
+				<&vdsp_ck AX650X_PCLK_ADDR_REMAP0>,
+				<&vdsp_ck AX650X_PCLK_ADDR_REMAP1>,
+				<&vdsp_ck AX650X_PCLK_IDMA_AXI_CHANGE0>,
+				<&vdsp_ck AX650X_PCLK_IDMA_AXI_CHANGE1>,
+				<&vdsp_ck AX650X_CLK_VDSP_ROSC>,
+				<&vdsp_ck AX650X_CLK_VDSP_TLB>;
+			clock-names = "bus", "clk_dsp0", "clk_dsp1", "remap0",
+				"remap1", "idma0", "idma1", "rosc", "tlb";
+			resets = <&vdsp_reset_ext 0 0x54 0 0x58>,
+				<&vdsp_reset_ext 3 0x5c 3 0x60>,
+				<&vdsp_reset_ext 2 0x5c 2 0x60>,
+				<&vdsp_reset_ext 1 0x5c 1 0x60>,
+				<&vdsp_reset_ext 0 0x5c 0 0x60>,
+				<&vdsp_reset_ext 3 0x64 3 0x68>,
+				<&vdsp_reset_ext 2 0x64 2 0x68>,
+				<&vdsp_reset_ext 1 0x64 1 0x68>,
+				<&vdsp_reset_ext 0 0x64 0 0x68>;
+			reset-names = "rosc_sw_rst", "idma_axi_change0_sw_rst", "addr_remap0_sw_rst",
+				"vdsp0_dbg_sw_rst", "vdsp_core0_sw_rst", "idma_axi_change1_sw_rst",
+				"addr_remap1_sw_rst", "vdsp1_dbg_sw_rst", "vdsp_core1_sw_rst";
+			mb = <&mailbox>;
+			operating-points-v2 = <&vdsp_dfs>;
+		};
+
+		pcie0_rc: pcie@0x40000000 {
+			compatible = "axera,axera-pcie";
+			bus-range = <0x00 0x80>;
+			num-lanes = <2>;
+			ctl-id = <0>;
+			device_type = "pci";
+			reg = <0x0 0x40000000 0x0 0x00400000>,
+			      <0x0 0x48000000 0x0 0x800000>,
+			      <0x0 0x30000000 0x0 0x1000>;
+			reg-names = "dbi", "config", "pipe_sys";
+
+			clocks = <&pipe_ck AX650X_AUX_CLK_PCIE0>,
+				 <&pipe_ck AX650X_ACLK_PCIE0>,
+				 <&pipe_ck AX650X_AUX_CLK_PCIE_SEL>,
+				 <&pipe_phy_ck AX650X_PIPE_REF_ALT_CLK>;
+			clock-names = "pclk", "aclk", "aclk_sel", "phy_refclk";
+
+			perst-gpio = <&port3a 19 0>;
+
+			#address-cells = <3>;
+			#size-cells = <2>;
+			ranges = <0x81000000 0x0 0x48800000 0x0 0x48800000 0x0 0x80000>,
+				 <0x82000000 0x0 0x50000000 0x0 0x50000000 0x0 0x10000000>;
+
+			interrupts = <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
+
+			#interrupt-cells = <1>;
+
+			linux,pci-domain = <0>;
+			max-link-speed = <2>;
+		};
+
+		pcie0_ep: pcie@40000000 {
+			compatible = "axera,axera-pcie-ep";
+			reg = <0x0 0x40000000 0x0 0x00400000>, /* IP registers 1 */
+			      <0x0 0x50000000 0x0 0x02000000>, /* Configuration space */
+			      <0x0 0x30000000 0x0 0x1000>;
+			reg-names = "dbi", "addr_space", "pipe_sys";
+			interrupts = <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>;
+			num-ib-windows = <6>;
+			num-ob-windows = <2>;
+			num-lanes = <2>;
+			ctl-id = <0>;
+			max-link-speed = <2>;
+
+			clocks = <&pipe_ck AX650X_AUX_CLK_PCIE0>,
+				 <&pipe_ck AX650X_ACLK_PCIE0>,
+				 <&pipe_ck AX650X_AUX_CLK_PCIE_SEL>,
+				 <&pipe_phy_ck AX650X_PIPE_REF_ALT_CLK>;
+			clock-names = "pclk", "aclk", "aclk_sel", "phy_refclk";
+		};
+
+		pcie1_rc: pcie@0x60000000 {
+			compatible = "axera,axera-pcie";
+			bus-range = <0x80 0xff>;
+			num-lanes = <2>;
+			ctl-id = <1>;
+			device_type = "pci";
+			reg = <0x0 0x60000000 0x0 0x00400000>,
+			      <0x0 0x68000000 0x0 0x800000>,
+			      <0x0 0x30000000 0x0 0x1000>;
+			reg-names = "dbi", "config", "pipe_sys";
+
+			clocks = <&pipe_ck AX650X_AUX_CLK_PCIE1>,
+				 <&pipe_ck AX650X_ACLK_PCIE1>,
+				 <&pipe_ck AX650X_AUX_CLK_PCIE_SEL>,
+				 <&pipe_phy_ck AX650X_PIPE_REF_ALT_CLK>;
+			clock-names = "pclk", "aclk", "aclk_sel", "phy_refclk";
+
+			perst-gpio = <&port4a 21 0>;
+
+			#address-cells = <3>;
+			#size-cells = <2>;
+			ranges = <0x81000000 0x0 0x68800000 0x0 0x68800000 0x0 0x80000>,
+				 <0x82000000 0x0 0x70000000 0x0 0x70000000 0x0 0x10000000>;
+
+			interrupts = <GIC_SPI 181 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+
+			#interrupt-cells = <1>;
+
+			linux,pci-domain = <1>;
+			max-link-speed = <2>;
+		};
+
+		pcie1_ep: pcie@60000000 {
+			compatible = "axera,axera-pcie-ep";
+			reg = <0x0 0x60000000 0x0 0x00400000>, /* IP registers 1 */
+			      <0x0 0x70000000 0x0 0x02000000>, /* Configuration space */
+			      <0x0 0x30000000 0x0 0x1000>;
+			reg-names = "dbi", "addr_space", "pipe_sys";
+			interrupts = <GIC_SPI 181 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+			num-ib-windows = <6>;
+			num-ob-windows = <2>;
+			num-lanes = <2>;
+			ctl-id = <1>;
+			max-link-speed = <2>;
+
+			clocks = <&pipe_ck AX650X_AUX_CLK_PCIE1>,
+				 <&pipe_ck AX650X_ACLK_PCIE1>,
+				 <&pipe_ck AX650X_AUX_CLK_PCIE_SEL>,
+				 <&pipe_phy_ck AX650X_PIPE_REF_ALT_CLK>;
+			clock-names = "pclk", "aclk", "aclk_sel", "phy_refclk";
+		};
+
+		sata: sata@31000000 {
+			compatible = "axera,ax650-ahci";
+			reg = <0x0 0x31000000 0x0 0x10000>,
+			      <0x0 0x30000000 0x0 0x3000>,
+			      <0x0 0x30010000 0x0 0x1000>,
+			      <0x0 0x30700000 0x0 0x3000>,
+			      <0x0 0x30710000 0x0 0x1000>;
+			reg-names = "cfg_sata", "pipe_glb", "pipe_clk_rst", "pipephy_glb", "pipephy_ck_rst";
+			interrupts = <GIC_SPI 179 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&pipe_ck AX650X_ACLK_SATA>;
+			clock-names = "aclk_sata_eb";
+			resets = <&pipe_reset_ext 11 0x38 11 0x3c>;
+			reset-names = "sata_sw_rst";
+			status = "disabled";
+		};
+
+		spi0: spi@0x113000 {
+			compatible = "snps,dw-apb-ssi";
+			reg = <0x0 0x113000 0x0 0x400>;
+			interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port3a 12 0>; /*GPIO3-A12 for spi-mst0's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&flash_ck AX650X_CLK_P_SPI>,
+					<&flash_ck AX650X_PCLK_SPI>;
+			clock-names = "apb_ssi_clk", "pclk";
+			resets = <&flash_reset_ext 13 0x38 13 0x3c>,
+				<&flash_reset_ext 12 0x38 12 0x3c>;
+			reset-names = "rst", "prst";
+			status = "disabled";
+		};
+
+		spi1: spi@0x2030000 {
+			compatible = "snps,dw-apb-ssi";
+			reg = <0x0 0x2030000 0x0 0x400>;
+			interrupts = <GIC_SPI 116 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port0a 25 0>; /*GPIO0-A25 for spi-mst1's cs */
+			/*cs-gpios = <&port1a 19 0>;*/ /*GPIO1-A19 for spi-mst1's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&periph_ck AX650X_CLK_SPI_M1>,
+					<&periph_ck AX650X_PCLK_SPI_M1>;
+			clock-names = "apb_ssi_clk", "pclk";
+			resets = <&periph_reset_ext 27 0x88 27 0x8c>,
+				<&periph_reset_ext 26 0x88 26 0x8c>;
+			reset-names = "rst", "prst";
+			status = "disabled";
+		};
+
+		spi2: spi@0x2031000 {
+			compatible = "snps,dw-apb-ssi";
+			reg = <0x0 0x2031000 0x0 0x400>;
+			interrupts = <GIC_SPI 117 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port1a 9 0>; /*GPIO1-A9 for spi-mst2's cs */
+			/*cs-gpios = <&port2a 18 0>;*/ /*GPIO2-A18 for spi-mst2's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&periph_ck AX650X_CLK_SPI_M2>,
+					<&periph_ck AX650X_PCLK_SPI_M2>;
+			clock-names = "apb_ssi_clk", "pclk";
+			resets = <&periph_reset_ext 29 0x88 29 0x8c>,
+				<&periph_reset_ext 28 0x88 28 0x8c>;
+			reset-names = "rst", "prst";
+			status = "disabled";
+		};
+
+		spi3: spi@0x2032000 {
+			compatible = "snps,dw-apb-ssi";
+			reg = <0x0 0x2032000 0x0 0x400>;
+			interrupts = <GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port1a 23 0>; /*GPIO1-A23 for spi-mst3's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&periph_ck AX650X_CLK_SPI_M3>,
+					<&periph_ck AX650X_PCLK_SPI_M3>;
+			clock-names = "apb_ssi_clk", "pclk";
+			resets = <&periph_reset_ext 31 0x88 31 0x8c>,
+				<&periph_reset_ext 30 0x88 30 0x8c>;
+			reset-names = "rst", "prst";
+			status = "disabled";
+		};
+
+		spi4: spi@0x1300a000 {
+			compatible = "snps,dw-apb-ssi";
+			reg = <0x0 0x1300a000 0x0 0x400>;
+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port2a 1 0>; /*GPIO2-A1 for spi-mst4's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&sen_ck AX650X_CLK_SEN_SPI>,
+					<&sen_ck AX650X_PCLK_SEN_SPI>;
+			clock-names = "apb_ssi_clk", "pclk";
+			resets = <&sen_reset_ext 15 0x28 15 0x2c>,
+				<&sen_reset_ext 14 0x28 14 0x2c>;
+			reset-names = "rst", "prst";
+			status = "disabled";
+		};
+
+		spif: spi@0x20000000 {
+			compatible = "snps,dwc-ssi-1.03a";
+			reg = <0x0 0x20000000 0x0 0x1000>;
+			interrupts = <GIC_SPI 95 IRQ_TYPE_LEVEL_HIGH>;
+			cs-gpios = <&port3a 4 0>; /*GPIO3-A4 for ahb_ssi's cs */
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks =  <&flash_ck AX650X_CLK_H_SPI>,
+					<&flash_ck AX650X_HCLK_SPI>;
+			clock-names = "flashclk", "hclk";
+			resets = <&flash_reset_ext 11 0x38 11 0x3c>,
+				<&flash_reset_ext 10 0x38 10 0x3c>;
+			reset-names = "rst", "hrst";
+			dmas = <&dmac 79>, <&dmac 78>;
+			dma-names = "rx", "tx";
+			status = "disabled";
+		};
+
+		spislv: spi@2140000 {
+			compatible = "snps,dwc-ssi-slv-1.03a";
+			reg = <0x0 0x2140000 0x0 0x1000>;
+			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
+			pinctrl-names = "default";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			rx-sample-delay-ns = <250>;
+			clocks =  <&periph_ck AX650X_CLK_SPI_S>,
+					<&periph_ck AX650X_HCLK_SPI_S>;
+			clock-names = "periphclk", "hclk";
+			resets = <&periph_reset_ext 15 0x78 15 0x7c>,
+				<&periph_reset_ext 14 0x78 14 0x7c>;
+			reset-names = "rst", "hrst";
+			dmas = <&dmac 9>, <&dmac 8>;
+			dma-names = "rx", "tx";
+			status = "disabled";
+		};
+
+
+		i2s_mst0: i2s_mst@2033000 {
+			compatible = "axera,dwc-i2s-mst";
+			reg = <0x0 0x2033000 0x0 0x800>;
+			interrupt-names = "i2s_mst";
+			//interrupts = <GIC_SPI 167 IRQ_TYPE_LEVEL_HIGH>;
+			dmas = <&dmac 62 &dmac 63>;
+			dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_I2S_M0>,
+				<&periph_ck AX650X_SCLK_I2S_M0>,
+				<&comm_ck AX650X_CLK_I2S_REF0>;
+			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
+			resets = <&periph_eb_reset 14 0x80 14 0x84 0x14 20 0x60 20 0x64 20>,
+				<&periph_eb_reset 15 0x80 15 0x84 0x4 4 0x40 4 0x44 4>;
+			reset-names = "prst", "rst";
+			channel = <1>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_mst1: i2s_mst@2034000 {
+			compatible = "axera,dwc-i2s-mst";
+			reg = <0x0 0x2034000 0x0 0x800>;
+			interrupt-names = "i2s_mst";
+			interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 64 &dmac 65>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_I2S_M1>,
+				<&periph_ck AX650X_SCLK_I2S_M1>,
+				<&comm_ck AX650X_CLK_I2S_REF0>;
+			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
+			resets = <&periph_eb_reset 16 0x80 16 0x84 0x14 21 0x60 21 0x64 21>,
+				<&periph_eb_reset 17 0x80 17 0x84 0x4 5 0x40 5 0x44 5>;
+			reset-names = "prst", "rst";
+			channel = <2>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_slv0: i2s_slv@2035000 {
+			compatible = "axera,dwc-i2s-slv";
+			reg = <0x0 0x2035000 0x0 0x800>;
+			interrupt-names = "i2s_slv";
+			interrupts = <GIC_SPI 165 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 66 &dmac 67>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_I2S_S0>;
+			clock-names = "i2s_pclk";
+			resets = <&periph_eb_reset 18 0x80 18 0x84 0x14 22 0x60 22 0x64 22>,
+				<&periph_reset_ext 19 0x80 19 0x84>;
+			reset-names = "prst", "rst";
+			channel = <3>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_slv1: i2s_slv@2036000 {
+			compatible = "axera,dwc-i2s-slv";
+			reg = <0x0 0x2036000 0x0 0x800>;
+			interrupt-names = "i2s_slv";
+			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 68 &dmac 69>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_I2S_S1>;
+			clock-names = "i2s_pclk";
+			resets = <&periph_eb_reset 20 0x80 20 0x84 0x14 23 0x60 23 0x64 23>,
+				<&periph_reset_ext 21 0x80 21 0x84>;
+			reset-names = "prst", "rst";
+			channel = <4>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_tdm_mst0: i2s_tdm_mst@2037000 {
+			compatible = "axera,dwc-i2s-tdm-mst";
+			reg = <0x0 0x2037000 0x0 0x800>;
+			interrupt-names = "i2s_mst_tdm";
+			interrupts = <GIC_SPI 171 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 70 &dmac 71>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_TDM_M0>,
+				<&periph_ck AX650X_SCLK_TDM_M0>,
+				<&comm_ck AX650X_CLK_I2S_REF0>;
+			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
+			resets = <&periph_eb_reset 0 0x90 0 0x94 0x14 31 0x60 31 0x64 31>,
+				<&periph_eb_reset 1 0x90 1 0x94 0x4 6 0x40 6 0x44 6>;
+			reset-names = "prst", "rst";
+			channel = <5>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_tdm_mst1: i2s_tdm_mst@2038000 {
+			compatible = "axera,dwc-i2s-tdm-mst";
+			reg = <0x0 0x2038000 0x0 0x800>;
+			interrupt-names = "i2s_mst_tdm";
+			interrupts = <GIC_SPI 172 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 72 &dmac 73>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_TDM_M1>,
+				<&periph_ck AX650X_SCLK_TDM_M1>,
+				<&comm_ck AX650X_CLK_I2S_REF0>;
+			clock-names = "i2s_pclk", "i2s_sclk", "i2s_mclk";
+			resets = <&periph_eb_reset 2 0x90 2 0x94 0x18 0 0x68 0 0x6C 0>,
+				<&periph_eb_reset 3 0x90 3 0x94 0x4 7 0x40 7 0x44 7>;
+			reset-names = "prst", "rst";
+			channel = <6>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_tdm_slv0: i2s_tdm_slv@2039000 {
+			compatible = "axera,dwc-i2s-tdm-slv";
+			reg = <0x0 0x2039000 0x0 0x800>;
+			interrupt-names = "i2s_slv_tdm";
+			interrupts = <GIC_SPI 169 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 74 &dmac 75>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_TDM_S0>;
+			clock-names = "i2s_pclk";
+			resets = <&periph_eb_reset 4 0x90 4 0x94 0x18 1 0x68 1 0x6C 1>,
+				<&periph_reset_ext 5 0x90 5 0x94>;
+			reset-names = "prst", "rst";
+			channel = <7>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_tdm_slv1: i2s_tdm_slv@203A000 {
+			compatible = "axera,dwc-i2s-tdm-slv";
+			reg = <0x0 0x203A000 0x0 0x800>;
+			interrupt-names = "i2s_slv_tdm";
+			interrupts = <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 76 &dmac 77>;
+			//dma-names = "rx", "tx";
+			clocks = <&periph_ck AX650X_PCLK_TDM_S1>;
+			clock-names = "i2s_pclk";
+			resets = <&periph_eb_reset 6 0x90 6 0x94 0x18 2 0x68 2 0x6C 2>,
+				<&periph_reset_ext 7 0x90 7 0x94>;
+			reset-names = "prst", "rst";
+			channel = <8>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_mst2: i2s_mst@10070000 {
+			compatible = "axera,dwc-i2s-mst";
+			hdmi-i2s;
+			reg = <0x0 0x10070000 0x0 0x800>;
+			interrupt-names = "i2s_mst";
+			interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 84 &dmac 85>;
+			//dma-names = "rx", "tx";
+			clocks = <&mm_ck AX650X_PCLK_I2S0>,
+				<&mm_ck AX650X_SCLK_MM_I2S0>;
+			clock-names = "i2s_pclk", "i2s_sclk";
+			resets = <&mm_eb_reset 12 0x38 12 0x3C 0x4 9 0x20 9 0x24 9>;
+			reset-names = "rst";
+			channel = <9>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		i2s_mst3: i2s_mst@10071000 {
+			compatible = "axera,dwc-i2s-mst";
+			hdmi-i2s;
+			reg = <0x0 0x10071000 0x0 0x800>;
+			interrupt-names = "i2s_mst";
+			interrupts = <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH>;
+			//dmas = <&dmac 86 &dmac 87>;
+			//dma-names = "rx", "tx";
+			clocks = <&mm_ck AX650X_PCLK_I2S1>,
+				<&mm_ck AX650X_SCLK_MM_I2S1>;
+			clock-names = "i2s_pclk", "i2s_sclk";
+			resets = <&mm_eb_reset 13 0x38 13 0x3C 0x4 10 0x20 10 0x24 10>;
+			reset-names = "rst";
+			channel = <10>;
+			#sound-dai-cells = <0>;
+			status = "disabled";
+		};
+		ax_perf_bm: ax_perf_bm@8011000 {
+			compatible = "axera,perf_bm";
+			reg = <0x0 0x8011000 0x0 0x4000>;
+			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
+			reg-shift = <2>;
+			status = "disabled";
+		};
+
+		ddr_dfs: ddr_dfs {
+			compatible = "axera,ddr_dfs";
+			operating-points-v2 = <&ddr_dfs_table>;
+			status = "disabled";
+		};
+		bwlimiter: bwlimiter {
+			compatible = "axera,bw_limiter";
+			status = "okay";
+		};
+		pwm0: pwm0@2010000 {
+			compatible = "axera,ax650x-pwm";
+			reg = <0x0 0x2010000 0x0 0x400>;
+			#pwm-cells = <2>;
+			resets = <&periph_reset_ext 30 0x80 30 0x84>,
+				 <&periph_reset_ext 22 0x80 22 0x84>,
+				 <&periph_reset_ext 23 0x80 23 0x84>,
+				 <&periph_reset_ext 24 0x80 24 0x84>,
+				 <&periph_reset_ext 25 0x80 25 0x84>,
+				 <&periph_reset_ext 26 0x80 26 0x84>,
+				 <&periph_reset_ext 27 0x80 27 0x84>,
+				 <&periph_reset_ext 28 0x80 28 0x84>,
+				 <&periph_reset_ext 29 0x80 29 0x84>;
+			reset-names =	"pwm-rst",
+					"pwm-ch0-rst", "pwm-ch1-rst",
+					"pwm-ch2-rst", "pwm-ch3-rst",
+					"pwm-ch4-rst", "pwm-ch5-rst",
+					"pwm-ch6-rst", "pwm-ch7-rst";
+			clocks = <&periph_ck AX650X_PCLK_PWM0>,
+				 <&periph_ck AX650X_CLK_PWM01>,
+				 <&periph_ck AX650X_CLK_PWM02>,
+				 <&periph_ck AX650X_CLK_PWM03>,
+				 <&periph_ck AX650X_CLK_PWM04>,
+				 <&periph_ck AX650X_CLK_PWM05>,
+				 <&periph_ck AX650X_CLK_PWM06>,
+				 <&periph_ck AX650X_CLK_PWM07>,
+				 <&periph_ck AX650X_CLK_PWM08>;
+			clock-names =	"pclk",
+					"pwm-ch0-clk", "pwm-ch1-clk", "pwm-ch2-clk", "pwm-ch3-clk",
+					"pwm-ch4-clk", "pwm-ch5-clk", "pwm-ch6-clk", "pwm-ch7-clk";
+			status = "disabled";
+		};
+		pwm1: pwm1@2011000 {
+			compatible = "axera,ax650x-pwm";
+			reg = <0x0 0x2011000 0x0 0x400>;
+			#pwm-cells = <2>;
+			resets = <&periph_reset_ext 7 0x88 7 0x8c>,
+				 <&periph_reset_ext 31 0x80 31 0x84>,
+				 <&periph_reset_ext 0 0x88 0 0x8c>,
+				 <&periph_reset_ext 1 0x88 1 0x8c>,
+				 <&periph_reset_ext 2 0x88 2 0x8c>,
+				 <&periph_reset_ext 3 0x88 3 0x8c>,
+				 <&periph_reset_ext 4 0x88 4 0x8c>,
+				 <&periph_reset_ext 5 0x88 5 0x8c>,
+				 <&periph_reset_ext 6 0x88 6 0x8c>;
+			reset-names =	"pwm-rst",
+					"pwm-ch0-rst", "pwm-ch1-rst",
+					"pwm-ch2-rst", "pwm-ch3-rst",
+					"pwm-ch4-rst", "pwm-ch5-rst",
+					"pwm-ch6-rst", "pwm-ch7-rst";
+			clocks = <&periph_ck AX650X_PCLK_PWM1>,
+				 <&periph_ck AX650X_CLK_PWM11>,
+				 <&periph_ck AX650X_CLK_PWM12>,
+				 <&periph_ck AX650X_CLK_PWM13>,
+				 <&periph_ck AX650X_CLK_PWM14>,
+				 <&periph_ck AX650X_CLK_PWM15>,
+				 <&periph_ck AX650X_CLK_PWM16>,
+				 <&periph_ck AX650X_CLK_PWM17>,
+				 <&periph_ck AX650X_CLK_PWM18>;
+			clock-names =	"pclk",
+					"pwm-ch0-clk", "pwm-ch1-clk", "pwm-ch2-clk", "pwm-ch3-clk",
+					"pwm-ch4-clk", "pwm-ch5-clk", "pwm-ch6-clk", "pwm-ch7-clk";
+			status = "disabled";
+		};
+		pwm2: pwm2@2012000 {
+			compatible = "axera,ax650x-pwm";
+			reg = <0x0 0x2012000 0x0 0x400>;
+			#pwm-cells = <2>;
+			resets = <&periph_reset_ext 16 0x88 16 0x8c>,
+				 <&periph_reset_ext 8 0x88 8 0x8c>,
+				 <&periph_reset_ext 9 0x88 9 0x8c>,
+				 <&periph_reset_ext 10 0x88 10 0x8c>,
+				 <&periph_reset_ext 11 0x88 11 0x8c>,
+				 <&periph_reset_ext 12 0x88 12 0x8c>,
+				 <&periph_reset_ext 13 0x88 13 0x8c>,
+				 <&periph_reset_ext 14 0x88 14 0x8c>,
+				 <&periph_reset_ext 15 0x88 15 0x8c>;
+			reset-names =	"pwm-rst",
+					"pwm-ch0-rst", "pwm-ch1-rst",
+					"pwm-ch2-rst", "pwm-ch3-rst",
+					"pwm-ch4-rst", "pwm-ch5-rst",
+					"pwm-ch6-rst", "pwm-ch7-rst";
+			clocks = <&periph_ck AX650X_PCLK_PWM2>,
+				 <&periph_ck AX650X_CLK_PWM21>,
+				 <&periph_ck AX650X_CLK_PWM22>,
+				 <&periph_ck AX650X_CLK_PWM23>,
+				 <&periph_ck AX650X_CLK_PWM24>,
+				 <&periph_ck AX650X_CLK_PWM25>,
+				 <&periph_ck AX650X_CLK_PWM26>,
+				 <&periph_ck AX650X_CLK_PWM27>,
+				 <&periph_ck AX650X_CLK_PWM28>;
+			clock-names =	"pclk",
+					"pwm-ch0-clk", "pwm-ch1-clk", "pwm-ch2-clk", "pwm-ch3-clk",
+					"pwm-ch4-clk", "pwm-ch5-clk", "pwm-ch6-clk", "pwm-ch7-clk";
+			status = "disabled";
+		};
+		pwm3: pwm3@2013000 {
+			compatible = "axera,ax650x-pwm";
+			reg = <0x0 0x2013000 0x0 0x400>;
+			#pwm-cells = <2>;
+			resets = <&periph_reset_ext 25 0x88 25 0x8c>,
+				 <&periph_reset_ext 17 0x88 17 0x8c>,
+				 <&periph_reset_ext 18 0x88 18 0x8c>,
+				 <&periph_reset_ext 19 0x88 19 0x8c>,
+				 <&periph_reset_ext 20 0x88 20 0x8c>,
+				 <&periph_reset_ext 21 0x88 21 0x8c>,
+				 <&periph_reset_ext 22 0x88 22 0x8c>,
+				 <&periph_reset_ext 23 0x88 23 0x8c>,
+				 <&periph_reset_ext 24 0x88 24 0x8c>;
+			reset-names =	"pwm-rst",
+					"pwm-ch0-rst", "pwm-ch1-rst",
+					"pwm-ch2-rst", "pwm-ch3-rst",
+					"pwm-ch4-rst", "pwm-ch5-rst",
+					"pwm-ch6-rst", "pwm-ch7-rst";
+			clocks = <&periph_ck AX650X_PCLK_PWM3>,
+				 <&periph_ck AX650X_CLK_PWM31>,
+				 <&periph_ck AX650X_CLK_PWM32>,
+				 <&periph_ck AX650X_CLK_PWM33>,
+				 <&periph_ck AX650X_CLK_PWM34>,
+				 <&periph_ck AX650X_CLK_PWM35>,
+				 <&periph_ck AX650X_CLK_PWM36>,
+				 <&periph_ck AX650X_CLK_PWM37>,
+				 <&periph_ck AX650X_CLK_PWM38>;
+			clock-names = 	"pclk",
+					"pwm-ch0-clk", "pwm-ch1-clk", "pwm-ch2-clk", "pwm-ch3-clk",
+					"pwm-ch4-clk", "pwm-ch5-clk", "pwm-ch6-clk", "pwm-ch7-clk";
+			status = "disabled";
+		};
+		ax_debug_mnr: ax_debug_mnr@1E201000 {
+			compatible = "axera,debug_mnr";
+			reg = <0x0 0x1E201000 0x0 0x4000>;
+			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
+			reg-shift = <2>;
+			status = "okay";
+		};
+		isp: isp@12100000 {
+			compatible = "axera,proton";
+			reg = <0x0 0x12100000 0x0 0x100000>;
+			interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 156 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "isp0-0", "isp0-1", "isp0-2";
+			clocks = <&isp_ck AX650X_CLK_ISP_IFE>,
+				 <&isp_ck AX650X_CLK_ISP_ITP>,
+				 <&isp_ck AX650X_CLK_ISP_YUV>,
+				 <&isp_ck AX650X_CLK_ISP_DPU>,
+				 <&isp_ck AX650X_CLK_ISP_AXIM>,
+				 <&comm_ck AX650X_CLK_SEN_REF0>,
+				 <&comm_ck AX650X_CLK_SEN_REF1>,
+				 <&comm_ck AX650X_CLK_SEN_REF2>,
+				 <&comm_ck AX650X_CLK_SEN_REF3>,
+				 <&comm_ck AX650X_CLK_SEN_REF4>,
+				 <&comm_ck AX650X_CLK_SEN_REF5>,
+				 <&comm_ck AX650X_CLK_SEN_REF6>,
+				 <&comm_ck AX650X_CLK_SEN_REF7>;
+			clock-names = "isp-clk0", "isp-clk1", "isp-clk2", "isp-clk3", "isp-clk4",
+				      "mclk-sen0", "mclk-sen1", "mclk-sen2", "mclk-sen3",
+				      "mclk-sen4", "mclk-sen5", "mclk-sen6", "mclk-sen7";
+		};
+		isp_ife{
+			compatible = "axera,proton_ife";
+			operating-points-v2 = <&isp_ife_table>;
+			clock-names = "isp-pll-clk";
+			clocks = <&isp_ck AX650X_CLK_ISP_IFE>;
+		};
+		isp_itp{
+			compatible = "axera,proton_itp";
+			operating-points-v2 = <&isp_itp_table>;
+			clock-names = "isp-pll-clk";
+			clocks = <&isp_ck AX650X_CLK_ISP_ITP>;
+		};
+		vsync_ctrl{
+			compatible = "axera,vsync_ctrl";
+			pwms = <&pwm3 4 33333333>;
+		};
+		mipi_rx: mipi_rx@13000000 {
+			compatible = "axera,mipi";
+			reg = <0x0 0x13000000 0x0 0xBFFFFF>;
+			/*#clocks = <&isp_clk >;*/
+		};
+
+		mipi_tx: mipi_tx@10050300 {
+			clocks = <&mm_ck AX650X_CLK_CSI_ASYNC>,
+					<&mm_ck AX650X_PCLK_CSITX>,
+					<&mm_ck AX650X_CLK_AXI2CSI>,
+					<&mm_phy_ck AX650X_CLK_DPHY_TX_REF>;
+			clock-names = "csi-async", "csitx-pclk", "axi2csi-clk", "dphy_ref";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>,
+						<GIC_SPI 107 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "axi2csi-irq", "csictrl-irq";
+			compatible = "axera,mipi-tx";
+		};
+
+		ive: ive@10104000 {
+			compatible = "axera,ax-ive";
+			reg = <0x0 0x10104000 0x0 0x1000>;
+			reg-names = "ive";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "ive";
+			clocks = <&mm_core_ck AX650X_CLK_IVE>;
+			clock-names = "core_clk";
+			resets = <&mm_core_eb_reset 2 0x10 2 0x14 0 2 8 2 0xc 2>;
+			reset-names = "ive_rst";
+			status = "disabled";
+		};
+		pub_ce: ax_cipher@4540000 {
+			compatible = "axera,cipher";
+			reg = <0x0 0x4540000 0x0 0x20000>;
+			interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&comm_ck AX650X_PCLK_PUB_CE>,
+				 <&comm_ck AX650X_CLK_PUB_CE>,
+				 <&comm_ck AX650X_CLK_PUB_CE_CNT>;
+			clock-names = "pclk", "core", "cnt";
+			resets = <&comm_reset_ext 13 0x60 13 0x64>,
+				 <&comm_reset_ext 12 0x60 12 0x64>,
+				 <&comm_reset_ext 14 0x60 14 0x64>,
+				 <&comm_reset_ext 15 0x60 15 0x64>,
+				 <&comm_reset_ext 16 0x60 16 0x64>;
+			reset-names = "main_sw_rst",
+				      "cnt_sw_rst",
+				      "soft_sw_rst",
+				      "sw_prst",
+				      "sw_rst";
+
+			status = "okay";
+		};
+
+		axera_rtc_pwr:rtc-top@285FD000 {
+			compatible = "axera,axi-top-rtc";
+			reg-num = <2>;
+			reg = <0x0 0x285FD000 0x0 0x1000>,
+			      <0x0 0x100000 0x0 0x1000>;
+			interrupts = <GIC_SPI 187 IRQ_TYPE_LEVEL_HIGH>;
+			linux,input-type = <EV_KEY>;
+			linux,code = <KEY_POWER>;
+			debounce-interval = <1000>;
+			wakeup-source;
+			status = "disabled";
+		};
+
+		hwlock: ax_hwspinlock@4510000 {
+			compatible = "axera,hwspinlock-r1p0";
+			reg = <0 0x4510000 0 0x1000>;
+			clocks = <&comm_ck AX650X_PCLK_SPINLOCK>;
+			clock-names = "spinlock_pclk";
+			resets = <&comm_reset_ext 27 0x60 27 0x64>;
+			reset-names =  "spinlock-sw-rst";
+			status = "okay";
+		};
+
+		drm0: drm@0 {
+			compatible = "axera,display-subsystem";
+			ports = <&dpu0_out>;
+			status = "disabled";
+		};
+
+		drm1: drm@1 {
+			compatible = "axera,display-subsystem";
+			ports = <&dpu1_out>;
+			status = "disabled";
+		};
+
+		drm2: drm@2 {
+			compatible = "axera,display-subsystem";
+			ports = <&dpu_lite_out>;
+			status = "disabled";
+		};
+
+		vo0: vo@10111000 {
+			compatible = "axera,vo";
+			reg = <0x0 0x10111000 0x0 0x1000>,
+			      <0x0 0x10000000 0x0 0x10000>;
+			clocks = <&mm_ck AX650X_CLK_DPU0>,
+				 <&mm_ck AX650X_CLK_MM_DPU_OUT0>,
+				 <&mm_ck AX650X_CLK_CMD>;
+			clock-names = "clk_dpu", "clk_dpi", "clk_cdma";
+			resets = <&mm_eb_reset 4 0x38 4 0x3c 0x8 3 0x28 3 0x2c 3>, <&mm_reset_ext 1 0x38 1 0x3c>;
+			reset-names = "dpu_rst", "dpu_cdma";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			id = <0>;
+			type = <0>;
+			use_cdma;
+			operating-points-v2 = <&vo0_dfs>;
+			status = "disabled";
+		};
+
+		vo1: vo@10112000 {
+			compatible = "axera,vo";
+			reg = <0x0 0x10112000 0x0 0x1000>,
+			      <0x0 0x10000000 0x0 0x10000>;
+			clocks = <&mm_ck AX650X_CLK_DPU1>,
+				 <&mm_ck AX650X_CLK_MM_DPU_OUT1>,
+				 <&mm_ck AX650X_CLK_CMD>;
+			clock-names = "clk_dpu", "clk_dpi", "clk_cdma";
+			resets = <&mm_eb_reset 5 0x38 5 0x3c 0x8 4 0x28 4 0x2c 4>, <&mm_reset_ext 1 0x38 1 0x3c>;
+			reset-names = "dpu_rst", "dpu_cdma";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			id = <1>;
+			type = <0>;
+			use_cdma;
+			operating-points-v2 = <&vo1_dfs>;
+			status = "disabled";
+		};
+
+		vo2: vo@0x12006000 {
+			compatible = "axera,vo";
+			reg = <0x0 0x12006000 0x0 0x1000>,
+			      <0x0 0x12000000 0x0 0x1000>;
+			clocks = <&isp_ck AX650X_CLK_ISP_IFE>,
+				 <&isp_ck AX650X_CLK_ISP_DPU>,
+				 <&isp_ck AX650X_CLK_ISP_DPU_OUT>,
+				 <&sen_phy_ck AX650X_PCLK_CDPHY_RX0>,
+				 <&sen_phy_ck AX650X_PCLK_CDPHY_RX1>,
+				 <&sen_phy_ck AX650X_PCLK_CDPHY_RX2>,
+				 <&sen_phy_ck AX650X_PCLK_CDPHY_RX3>,
+				 <&sen_phy_ck AX650X_CDPHY_RX0_CFG_CLK>,
+				 <&sen_phy_ck AX650X_CDPHY_RX1_CFG_CLK>,
+				 <&sen_phy_ck AX650X_CDPHY_RX2_CFG_CLK>,
+				 <&sen_phy_ck AX650X_CDPHY_RX3_CFG_CLK>,
+				 <&sen_ck AX650X_PCLK_RX0_PINMUX>,
+				 <&sen_ck AX650X_PCLK_RX1_PINMUX>,
+				 <&sen_ck AX650X_PCLK_RX2_PINMUX>,
+				 <&sen_ck AX650X_PCLK_RX3_PINMUX>;
+
+			clock-names = "clk_ife","clk_dpu", "clk_dpi",
+					"pclk_cdphy_rx0",
+					"pclk_cdphy_rx1",
+					"pclk_cdphy_rx2",
+					"pclk_cdphy_rx3",
+					"cdphy_rx0_cfg_clk",
+					"cdphy_rx1_cfg_clk",
+					"cdphy_rx2_cfg_clk",
+					"cdphy_rx3_cfg_clk",
+					"rx0_pinmux_clk",
+					"rx1_pinmux_clk",
+					"rx2_pinmux_clk",
+					"rx3_pinmux_clk";
+
+			resets = <&isp_reset_ext 0 0x3c 0 0x40>,
+				 <&isp_reset_ext 2 0x44 2 0x48>,
+				 <&isp_eb_reset 0 0x44 0 0x48 0x8 1 0x2c 1 0x30 1>,
+				 <&sen_phy_reset_ext 0 0x1c 0 0x20>,
+				 <&sen_phy_reset_ext 1 0x1c 1 0x20>,
+				 <&sen_phy_reset_ext 2 0x1c 2 0x20>,
+				 <&sen_phy_reset_ext 3 0x1c 3 0x20>,
+				 <&sen_reset_ext 10 0x28 10 0x2c>,
+				 <&sen_reset_ext 11 0x28 11 0x2c>,
+				 <&sen_reset_ext 12 0x28 12 0x2c>,
+				 <&sen_reset_ext 13 0x28 13 0x2c>;
+
+			reset-names = "isp_axim_rst",
+					"isp_ife_rst",
+					"dpu_rst",
+					"cdphy_rx0_rst",
+					"cdphy_rx1_rst",
+					"cdphy_rx2_rst",
+					"cdphy_rx3_rst",
+					"rx0_pinmux_rst",
+					"rx1_pinmux_rst",
+					"rx2_pinmux_rst",
+					"rx3_pinmux_rst";
+
+			interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
+			id = <2>;
+			type = <1>;
+			operating-points-v2 = <&isp_ife_table>;
+			dpu_lite;
+			status = "disabled";
+		};
+
+		vo3: vo@3 {
+			compatible = "axera,vo";
+			id = <3>;
+			type = <2>;
+			status = "disabled";
+		};
+
+		vo4: vo@4 {
+			compatible = "axera,vo";
+			id = <4>;
+			type = <2>;
+			status = "disabled";
+		};
+
+		crtc0: crtc@0 {
+			compatible = "axera,crtc";
+			id = <0>;
+			status = "disabled";
+
+			clocks = <&pllc_ck AX650X_CLK_VPLL0>,
+				 <&comm_ck AX650X_NFPLL_27M>,
+				 <&mm_ck AX650X_CLK_MM_DPU_OUT0>;
+			clock-names = "clk_vpll",
+				      "clk_vpll_ref",
+				      "pclk";
+
+			dpu0_out: port {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				hdmi0_out: endpoint@0 {
+					reg = <0>;
+					remote-endpoint = <&hdmi0_in>;
+				};
+
+				dsi_out: endpoint@1 {
+					reg = <1>;
+					remote-endpoint = <&dsi_in>;
+				};
+			};
+		};
+
+		crtc1: crtc@1 {
+			compatible = "axera,crtc";
+			id = <1>;
+			status = "disabled";
+
+			clocks = <&pllc_ck AX650X_CLK_VPLL1>,
+				 <&comm_ck AX650X_NFPLL_27M>,
+				 <&mm_ck AX650X_CLK_MM_DPU_OUT1>;
+			clock-names = "clk_vpll",
+				      "clk_vpll_ref",
+				      "pclk";
+
+			dpu1_out: port {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				hdmi1_out: endpoint@0 {
+					reg = <0>;
+					remote-endpoint = <&hdmi1_in>;
+				};
+
+				bt_dpi_out_0: endpoint@1 {
+					reg = <1>;
+					remote-endpoint = <&bt_dpi_in_0>;
+				};
+			};
+		};
+
+		crtc2: crtc@2 {
+			compatible = "axera,crtc";
+			id = <2>;
+			status = "disabled";
+
+			dpu_lite_out: port {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				bt_dpi_out_1: endpoint@0 {
+					reg = <0>;
+					remote-endpoint = <&bt_dpi_in_1>;
+				};
+			};
+		};
+
+		bt_dpi0: bt_dpi@0 {
+			compatible = "axera,bt-dpi";
+			id = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+
+			port {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				virt_out_0: endpoint@0 {
+					remote-endpoint = <&panel_in_0>;
+				};
+
+				bt_dpi_in_0: endpoint@1 {
+					remote-endpoint = <&bt_dpi_out_0>;
+				};
+			};
+		};
+
+		bt_dpi1: bt_dpi@1 {
+			compatible = "axera,bt-dpi";
+			id = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+
+			port {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				virt_out_1: endpoint@0 {
+					remote-endpoint = <&panel_in_1>;
+				};
+
+				bt_dpi_in_1: endpoint@1 {
+					remote-endpoint = <&bt_dpi_out_1>;
+				};
+			};
+		};
+
+		hdmi0: hdmi@10030000 {
+			compatible = "axera,hdmi";
+			id = <0>;
+			reg = <0x0 0x10030000 0x0 0x10000>;
+			clocks = <&mm_ck AX650X_PCLK_HDMI0>,
+				 <&mm_ck AX650X_CLK_HDMI_VIDEO0>,
+				 <&mm_ck AX650X_CLK_HDMI0_ISFR>,
+				 <&mm_ck AX650X_CLK_HDMI_32K>,
+				 <&mm_ck AX650X_CLK_MM_ISFR>;
+			clock-names = "iapb", "ivideo", "isfr", "i32k", "mm-isfr";
+			resets = <&mm_eb_reset 8 0x38 8 0x3c 0x8 13 0x28 13 0x2c 13>,<&mm_eb_reset 9 0x38 9 0x3c 0x8 7 0x28 7 0x2c 7>;
+			reset-names = "hdmi_p_rst","hdmi_rst";
+			interrupts = <GIC_SPI 108 IRQ_TYPE_LEVEL_HIGH>;
+			reg-io-width = <1>;
+			status = "disabled";
+			#sound-dai-cells = <0>;
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					hdmi0_in: endpoint {
+						remote-endpoint = <&hdmi0_out>;
+					};
+				};
+			};
+		};
+
+		hdmi1: hdmi@10040000 {
+			compatible = "axera,hdmi";
+			id = <1>;
+			reg = <0x0 0x10040000 0x0 0x10000>;
+			clocks = <&mm_ck AX650X_PCLK_HDMI1>,
+				 <&mm_ck AX650X_CLK_HDMI_VIDEO1>,
+				 <&mm_ck AX650X_CLK_HDMI1_ISFR>,
+				 <&mm_ck AX650X_CLK_HDMI_32K>,
+				 <&mm_ck AX650X_CLK_MM_ISFR>;
+			clock-names = "iapb", "ivideo", "isfr", "i32k", "mm-isfr";
+			resets = <&mm_eb_reset 10 0x38 10 0x3c 0x8 14 0x28 14 0x2c 14>,<&mm_eb_reset 11 0x38 11 0x3c 0x8 8 0x28 8 0x2c 8>;
+			reset-names = "hdmi_p_rst","hdmi_rst";
+			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
+			reg-io-width = <1>;
+			status = "disabled";
+			#sound-dai-cells = <0>;
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					hdmi1_in: endpoint {
+						remote-endpoint = <&hdmi1_out>;
+					};
+				};
+			};
+		};
+
+		dsi: dsi@0x10060000 {
+			compatible = "axera,dsi";
+			reg = <0x0 0x10060000 0x0 0x10000>,
+			      <0x0 0x10000000 0x0 0x100>,
+			      <0x0 0x10013000 0x0 0x120>;
+			clocks = <&mm_ck AX650X_PCLK_DSITX>,
+				 <&mm_phy_ck AX650X_CLK_DPHY_TX_REF>,
+				 <&mm_ck AX650X_CLK_HDMI_VIDEO0>;
+			clock-names = "pclk", "dphy_ref", "ivideo_clk";
+			resets = <&mm_eb_reset 6 0x38 6 0x3c 0x8 12 0x28 12 0x2c 12>,<&mm_reset_ext 16 0x38 16 0x3c>;
+			reset-names = "apb","byte_dskew_rst";
+			max-lanes = <4>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					dsi_in: endpoint {
+						remote-endpoint = <&dsi_out>;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					dsi_output: endpoint {
+						remote-endpoint = <&dsi_panel_input>;
+					};
+				};
+			};
+
+			panel_dsi: panel_dsi@0 {
+				compatible = "axera,simple-dsi-panel";
+				reg = <0>;
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						dsi_panel_input: endpoint {
+							remote-endpoint = <&dsi_output>;
+						};
+					};
+				};
+			};
+		};
+
+		panel0: panel@0 {
+			compatible = "axera,simple-panel";
+			id = <0>;
+			status = "disabled";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					panel_in_0: endpoint {
+						remote-endpoint = <&virt_out_0>;
+					};
+				};
+			};
+		};
+
+		panel1: panel@1 {
+			compatible = "axera,simple-panel";
+			id = <1>;
+			status = "disabled";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					panel_in_1: endpoint {
+						remote-endpoint = <&virt_out_1>;
+					};
+				};
+			};
+		};
+
+		pinctrl_ax: pinctrl@4250200{
+			compatible = "axera,ax650x-pinctrl";
+			reg = <0x0 0x4250200 0x0 0x1E00>;
+		};
+		tsensor: tsensor@0,4D00000 {
+			compatible = "axera,ax650-tsensor";
+			reg = <0x0 0x4D00000 0x0 0x1000>;
+			interrupts = <GIC_SPI 65 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&comm_ck AX650X_CLK_THM>, <&comm_ck AX650X_PCLK_THM>;
+			clock-names = "thermal_clk", "thermal_pclk";
+			resets = <&comm_reset_ext 28 0x60 28 0x64>, <&comm_reset_ext 29 0x60 29 0x64>;
+			reset-names = "thm_prst", "thm_rst";
+			status = "okay";
+			#thermal-sensor-cells = <1>;
+		};
+		thermal-zones {
+			soc_thm: soc_thm {
+				polling-delay = <1000>;
+				polling-delay-passive = <100>;
+				sustainable-power = <4500>;
+				/* sensor ID */
+				thermal-sensors = <&tsensor 0>;
+				trips {
+					threshold: trip-point@0 {
+						temperature = <80000>;
+						hysteresis = <0>;
+						type = "passive";
+					};
+					target: trip-point@1 {
+						temperature = <105000>;
+						hysteresis = <0>;
+						type = "passive";
+					};
+					soc_crit: soc-crit {
+						temperature = <120000>;
+						hysteresis = <0>;
+						type = "passive";
+					};
+				};
+			};
+		};
+		vdec: vdec@19000000 {
+			compatible = "axera, video-decoder";
+			reg = <0x0 0x19000000 0x0 0x1000>,
+			      <0x0 0x19001000 0x0 0x1000>,
+			      <0x0 0x19010000 0x0 0x4000>,
+			      <0x0 0x19014000 0x0 0x4000>,
+			      <0x0 0x19018000 0x0 0x1000>;
+			reg-names = "vdec_glb", "vdec_clk_rst", "vdec0_cfg", "vdec1_cfg", "vdec_fbc";
+			interrupts = <GIC_SPI 200 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 201 IRQ_TYPE_LEVEL_HIGH>;
+			type = "chip";
+			clocks = <&vdec_ck AX650X_CLK_VDEC0>,
+				 <&vdec_ck AX650X_CLK_VDEC1>;
+			clock-names = "vdec0_clk", "vdec1_clk";
+			resets = <&vdec_reset 0 0x28 0 0x2C 0x8 0 0x20 0 0x24 0>,
+				 <&vdec_reset 1 0x28 1 0x2C 0x8 1 0x20 1 0x24 1>;
+			reset-names = "vdec0_rst", "vdec1_rst";
+			operating-points-v2 = <&vdec_dfs>;
+			status = "disabled";
+		};
+
+		jdec: jdec@10120000 {
+			compatible = "axera, jpeg-decoder";
+			reg = <0x0 0x10120000 0x0 0xFFFF>;
+			reg-names = "jdec0";
+			type = "chip";
+			clocks = <&mm_ck AX650X_CLK_JDEC>;
+			clock-names = "jdec0_clk";
+			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+			resets = <&mm_eb_reset 14 0x38 14 0x3C 0x8 9 0x28 9 0x2C 9>;
+			reset-names = "ax650_rst_jdec";
+			operating-points-v2 = <&jdec_dfs>;
+			status = "disabled";
+		};
+
+		jenc: jenc@10130000 {
+			compatible = "axera, jpeg-encoder";
+			reg = <0x0 0x10130000 0x0 0xFFFF>;
+			reg-names = "jenc";
+			clocks = <&mm_ck AX650X_CLK_JENC>;
+			clock-names = "jenc_clk";
+			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+
+			resets = <&mm_eb_reset 15 0x38 15 0x3C 0x8 10 0x28 10 0x2C 10>;
+			reset-names = "jenc_rst";
+			operating-points-v2 = <&jenc_dfs>;
+			status = "disabled";
+		};
+
+		venc: venc@1A000000 {
+			compatible = "axera, video-encoder";
+			reg = <0x0 0x1A000000 0x0 0x100000>;
+			reg-names = "venc";
+			clocks = <&venc_ck AX650X_CLK_VENC_BUS_SEL>,
+				<&venc_ck AX650X_CLK_VENC1_BUS_SEL>,
+				<&venc_ck AX650X_CLK_VENC0_BUS_SEL>,
+				<&venc_ck AX650X_CLK_VENC_ROSC>,
+				<&venc_ck AX650X_CLK_VENC1>,
+				<&venc_ck AX650X_CLK_VENC0>;
+			clock-names = "venc_bus_sel", "venc1_bus_sel","venc0_bus_sel",
+							"venc_rosc","venc1_clk", "venc0_clk";
+			interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 205 IRQ_TYPE_LEVEL_HIGH>;
+
+			/* resets = <&venc_reset 1 0xc 1>, <&venc_reset 0 0xc 1>; */
+			resets = <&venc_reset 0 0x28 0 0x2C 0x8 0 0x20 0 0x24 0>,
+				 <&venc_reset 1 0x28 1 0x2C 0x8 1 0x20 1 0x24 1>;
+			reset-names = "venc_core0_rst", "venc_core1_rst";
+			operating-points-v2 = <&venc_dfs>;
+			status = "disabled";
+		};
+
+		vpp: vpp@120D4000 {
+			compatible = "axera, vpp-dev";
+			reg = <0x0 0x120D4000 0x0 0x4000>,
+			      <0x0 0x120C0000 0x0 0x4000>,
+			      <0x0 0x12801000 0x0 0x4000>,
+			      <0x0 0x12081000 0x0 0x1000>;
+			reg-names = "vpp", "vpp_yuv_top", "vpp_isp", "vpp_cmd";
+			clocks = <&isp_ck AX650X_CLK_ISP_YUV>,
+				 <&isp_ck AX650X_CLK_ISP_ITP>,
+				 <&isp_ck AX650X_CLK_ISP_IFE>,
+				 <&isp_ck AX650X_CLK_ISP_AXIM>,
+				 <&mm_vpp_ck AX650X_CLK_VPP>;
+			clock-names = "clk_vpp0", "clk_vpp1", "clk_vpp2", "clk_vpp3", "clk_vpp4";
+			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
+			resets = <&isp_reset_ext 0 0x3C 0 0x40>,	/* axim */
+				 <&isp_reset_ext 3 0x3C 3 0x40>,	/* isp_itp */
+				 <&isp_reset_ext 7 0x3C 7 0x40>,	/* isp_yuv */
+				 <&isp_reset_tdp_vpp 23 0x78103C 23 0x781040 0x40150 17 0x40154 17 0x40158 17>,	/* vpp */
+				 <&isp_reset_ext 2 0x44 2 0x48>;	/* isp_ife */
+			reset-names = "vpp0_rst", "vpp1_rst", "vpp2_rst", "vpp3_rst", "vpp4_rst";
+			operating-points-v2 = <&vpp_dfs>;
+			status = "disabled";
+		};
+
+		vgp: vgp@0x10103000 {
+			compatible = "axera, vgp-dev";
+			reg = <0x0 0x10103000 0x0 0x1000>,
+			      <0x0 0x10000000 0x0 0x1000>,
+			      <0x0 0x10101000 0x0 0x1000>,
+			      <0x0 0x10102000 0x0 0x1000>,
+			      <0x0 0x10100000 0x0 0x1000>;
+			reg-names = "vgp", "vgp_mm_glb", "vgp_mm_sys_config", "vgp_mm_sys_clk_rst", "vgp_cmd";
+			clocks = <&mm_core_ck AX650X_CLK_VGP>,
+				 <&mm_core_ck AX650X_CLK_CORE_CMD>;
+			clock-names = "clk_vgp", "core_cmd_clk_vgp";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			resets = <&mm_core_reset_ext 0 0x10 0 0x14>,
+				 <&mm_core_eb_reset 4 0x10 4 0x14 0x0 4 0x8 4 0xC 4>;
+			reset-names = "vgp_rst0", "vgp_rst1";
+			operating-points-v2 = <&vgp_dfs>;
+			status = "disabled";
+		};
+
+		tdp: tdp@1209C000 {
+			compatible = "axera, tdp-dev";
+			reg = <0x0 0x1209C000 0x0 0x1000>,
+			      <0x0 0x1209D000 0x0 0x1000>,
+			      <0x0 0x12081000 0x0 0x1000>;
+			reg-names = "tdp0", "tdp1", "tdp_cmd";
+			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&mm_tdp_ck AX650X_CLK_TDP0>,
+				 <&mm_tdp_ck AX650X_CLK_TDP1>,
+				 <&isp_ck AX650X_CLK_ISP_YUV>,
+				 <&isp_ck AX650X_CLK_ISP_ITP>,
+				 <&isp_ck AX650X_CLK_ISP_IFE>,
+				 <&isp_ck AX650X_CLK_ISP_AXIM>;
+			clock-names = "tdp_clk0", "tdp_clk1", "tdp_depend_clk0", "tdp_depend_clk1",
+				      "tdp_depend_clk2", "tdp_depend_clk3";
+			resets = <&isp_reset_ext 0 0x3C 0 0x40>,	/* axim */
+				 <&isp_reset_ext 3 0x3C 3 0x40>,	/* isp_itp */
+				 <&isp_reset_ext 7 0x3C 7 0x40>,	/* isp_yuv */
+				 <&isp_reset_tdp_vpp 21 0x78103C 21 0x781040 0x110 20 0x114 20 0x118 20>,	/* tdp0 */
+				 <&isp_reset_tdp_vpp 22 0x78103C 22 0x781040 0x110 21 0x114 21 0x118 21>,	/* tdp1 */
+				 <&isp_reset_ext 2 0x44 2 0x48>;	/* isp_ife */
+			reset-names = "tdp0_rst", "tdp1_rst", "tdp2_rst",
+				      "tdp3_rst", "tdp4_rst", "tdp5_rst";
+			operating-points-v2 = <&tdp_dfs>;
+			status = "disabled";
+		};
+
+		gdc: gdc@10107000 {
+			compatible = "axera, gdc-dev";
+			reg = <0x0 0x10107000 0x0 0x1000>;
+			reg-names = "gdc";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&mm_core_ck AX650X_CLK_GDC>,
+				 <&mm_core_ck AX650X_CLK_CORE_CMD>;
+			clock-names = "gdc_clk", "core_cmd_clk";
+			resets = <&mm_core_reset_ext 0 0x10 0 0x14>,
+				 <&mm_core_eb_reset 1 0x10 1 0x14 0x0 1 0x8 1 0xC 1>;
+			reset-names = "gdc_rst0", "gdc_rst1";
+			operating-points-v2 = <&gdc_dfs>;
+			status = "disabled";
+		};
+
+		pyralite: pyralite@10105000 {
+			compatible = "axera, pyralite-dev";
+			reg = <0x0 0x10105000 0x0 0x1000>,
+			      <0x0 0x10106000 0x0 0x1000>;
+			reg-names = "pyralite_gen", "pyralite_rcn";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&mm_core_ck AX650X_CLK_PYRA_LITE>,
+				 <&mm_core_ck AX650X_CLK_CORE_CMD>;
+			clock-names = "pyralite_clk", "core_cmd_clk";
+			resets = <&mm_core_eb_reset 3 0x10 3 0x14 0x0 3 0x8 3 0xC 3>;
+			reset-names = "pyralite_rst";
+			operating-points-v2 = <&pyralite_dfs>;
+			status = "disabled";
+		};
+
+		vdps_gdc: vdps_gdc {
+			compatible = "axera, vdsp-dev";
+			status = "disabled";
+		};
+
+		fbcdc_isp: fbcdc_isp@12007000 {
+			compatible = "axera, fbcdc-dev";
+			reg = <0x0 0x12007000 0x0 0x1000>;
+			status = "disabled";
+		};
+
+		fbcdc_mm: fbcdc_mm@1a014000 {
+			compatible = "axera, fbcdc-dev";
+			reg = <0x0 0x1a014000 0x0 0x1000>;
+			status = "disabled";
+		};
+
+		fbcdc_top: fbcdc_top@04528000 {
+			compatible = "axera, fbcdc-dev";
+			reg = <0x0 0x04528000 0x0 0x1000>;
+			status = "disabled";
+		};
+
+		stmmac_axi_setup: stmmac-axi-config {
+			snps,wr_osr_lmt = <15>;
+			snps,rd_osr_lmt = <15>;
+			snps,blen = <0 0 0 32 16 8 4>;
+		};
+
+		mtl_rx_setup: rx-queues-config {
+			snps,rx-queues-to-use = <1>;
+			queue0 {};
+		};
+
+		mtl_tx_setup: tx-queues-config {
+			snps,tx-queues-to-use = <1>;
+			queue0 {};
+		};
+
+		eth0: ethernet@0x10140000{
+			compatible = "axera,dwmac-4.10a";
+			reg = <0x0 0x10140000 0x0 0x10000>;
+
+			clocks = <&mm_ck AX650X_ACLK_MM_EMAC>,
+					<&comm_ck AX650X_CLK_EPHY_REF>,
+					<&mm_ck AX650X_CLK_MM_RGMII_TX>,
+					<&mm_ck AX650X_CLK_MM_RMII_PHY>,
+					<&mm_ck AX650X_CLK_MM_RMII_RX>,
+					<&mm_ck AX650X_CLK_MM_EMAC_PTP>;
+			clock-names = "emac_aclk", "ephy_clk", "rgmii_tx_clk", "rmii_phy_clk", "rmii_rx_clk", "ptp_clk";
+
+			interrupt-parent = <&gic>;
+			interrupts = <0 104 4>;
+			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
+
+			rx-fifo-depth = <65536>;
+			tx-fifo-depth = <32768>;
+			snps,tso;
+
+			snps,axi-config = <&stmmac_axi_setup>;
+			snps,mtl-rx-config = <&mtl_rx_setup>;
+			snps,mtl-tx-config = <&mtl_tx_setup>;
+
+			phy-rst-gpio = <&port0a 7 0>; /* GPIO0_A7 */
+		};
+
+		eth1: ethernet@0x30800000{
+			compatible = "axera,dwmac-4.10a";
+			reg = <0x0 0x30800000 0x0 0x10000>;
+
+			clocks = <&pipe_ck AX650X_ACLK_PP_EMAC>,
+					<&comm_ck AX650X_CLK_EPHY_REF>,
+					<&pipe_ck AX650X_CLK_PP_RGMII_TX>,
+					<&pipe_ck AX650X_CLK_PP_RMII_PHY>,
+					<&pipe_ck AX650X_CLK_PP_RMII_RX>,
+					<&pipe_ck AX650X_CLK_PP_EMAC_PTP>;
+			clock-names = "emac_aclk", "ephy_clk", "rgmii_tx_clk", "rmii_phy_clk", "rmii_rx_clk", "ptp_clk";
+
+			interrupt-parent = <&gic>;
+			interrupts = <0 186 4>;
+			interrupt-names = "macirq", "eth_wake_irq", "eth_lpi";
+
+			rx-fifo-depth = <65536>;
+			tx-fifo-depth = <32768>;
+			snps,tso;
+
+			snps,axi-config = <&stmmac_axi_setup>;
+			snps,mtl-rx-config = <&mtl_rx_setup>;
+			snps,mtl-tx-config = <&mtl_tx_setup>;
+
+			phy-rst-gpio = <&port1a 11 0>; /* GPIO1_A11 */
+		};
+
+		aclk_top:aclk_top {
+			compatible = "axera,aclk_top";
+			clocks = <&comm_ck AX650X_ACLK_TOP_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_top_dfs>;
+			status = "okay";
+		};
+		aclk_top1:aclk_top1 {
+			compatible = "axera,aclk_top1";
+			clocks = <&comm_ck AX650X_ACLK_TOP1_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_top_dfs>;
+			status = "okay";
+		};
+		aclk_top2:aclk_top2 {
+			compatible = "axera,aclk_top2";
+			clocks = <&comm_ck AX650X_ACLK_TOP2_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_top_dfs>;
+			status = "okay";
+		};
+		aclk_top3:aclk_top3 {
+			compatible = "axera,aclk_top3";
+			clocks = <&comm_ck AX650X_ACLK_TOP3_SEL>;
+			clock-names = "bus_clk";
+			operating-points-v2 = <&aclk_top_dfs>;
+			status = "okay";
+		};
+
+		aclk_top_nn:aclk_top_nn {
+			compatible = "axera,aclk_top_nn";
+			reg = <0x0 0x4210000 0x0 0x4>;
+			offset = <0x0>;
+			mask = <0x7>;
+			translate = <24000000 1248000000 1400000000
+				1500000000 1600000000>;
+			operating-points-v2 = <&aclk_top_nn_dfs>;
+			status = "okay";
+		};
+	};
+	hwinfo: hwinfo {
+		compatible = "ax,ax_hwinfo";
+		status = "okay";
+	};
+
+	usb30: dwc3@0x30c00000 {
+		compatible = "snps,dwc3";
+		reg = <0x0 0x30c00000 0x0 0x100000>;
+		interrupts = <0 183 4>;
+		clocks =<&pipe_ck AX650X_BUS_CLK_USB0>,
+				<&pipe_ck AX650X_CLK_USB0_REF>,
+				<&pipe_ck AX650X_CLK0_USB_SUSPEND>,
+				<&pipe_phy_ck AX650X_USB0_REF_ALT_CLK>,
+				<&pipe_phy_ck AX650X_PCLK_USB0_PHY>
+				;
+		clock-names = "bus_clk", "ref_clk", "suspend_clk", "ref_alt_clk", "phy_clk";
+		snps,dis-u2-freeclk-exists-quirk;
+		dr_mode = "otg";
+		usb-role-switch;
+		tx-fifo-resize;
+		phy_type = "utmi";
+		maximum-speed = "super-speed";
+		status = "disabled";
+	};
+
+	usb31: dwc3@0x30d00000 {
+		compatible = "snps,dwc3";
+		reg = <0x0 0x30d00000 0x0 0x100000>;
+		interrupts = <0 185 4>;
+		clocks =<&pipe_ck AX650X_BUS_CLK_USB1>,
+				<&pipe_ck AX650X_CLK_USB1_REF>,
+				<&pipe_ck AX650X_CLK1_USB_SUSPEND>,
+				<&pipe_phy_ck AX650X_USB1_REF_ALT_CLK>,
+				<&pipe_phy_ck AX650X_PCLK_USB1_PHY>
+				;
+		clock-names = "bus_clk", "ref_clk", "suspend_clk", "ref_alt_clk", "phy_clk";
+		snps,dis-u2-freeclk-exists-quirk;
+		usb2-only-mode;
+		dr_mode = "host";
+		phy_type = "utmi";
+		maximum-speed = "high-speed";
+		status = "disabled";
+	};
+
+	usb32: dwc3@0x28100000 {
+		compatible = "snps,dwc3";
+		reg = <0x0 0x28100000 0x0 0x100000>;
+		interrupts = <0 100 4>;
+		clocks =<&flash_ck AX650X_BUS_CLK_USB2>,
+				<&flash_ck AX650X_CLK_USB2_REF>,
+				<&flash_ck AX650X_USB2_REF_ALT_CLK>,
+				<&flash_ck AX650X_PCLK_USB2_PHY>
+				;
+		clock-names = "bus_clk", "ref_clk", "ref_alt_clk", "phy_clk";
+		snps,usb2-gadget-lpm-disable;
+		usb2-only-mode;
+		dr_mode = "peripheral";
+		phy_type = "utmi";
+		maximum-speed = "high-speed";
+		status = "disabled";
+	};
+
+};
