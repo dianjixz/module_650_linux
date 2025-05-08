@@ -335,7 +335,7 @@
 				sound-dai = <&i2s_mst0>;
 			};
 			codec {
-				sound-dai = <&es7243l>;
+				sound-dai = <&es7210>;
 				system-clock-frequency = <12288000>;
 			};
 		};
@@ -345,7 +345,7 @@
 				sound-dai = <&i2s_mst0>;
 			};
 			codec {
-				sound-dai = <&es8156>;
+				sound-dai = <&es8311>;
 				system-clock-frequency = <12288000>;
 			};
 		};
@@ -531,14 +531,14 @@
 };
 
 &ax_uart1 {
-	dmas = <&dmac 42 &dmac 43>;
-	dma-names = "tx", "rx";
+	// dmas = <&dmac 42 &dmac 43>;
+	// dma-names = "tx", "rx";
 	status = "disabled";
 };
 
 &ax_uart3 {
-	// dmas = <&dmac 42 &dmac 43>;
-	// dma-names = "tx", "rx";
+	dmas = <&dmac 42 &dmac 43>;
+	dma-names = "tx", "rx";
 	status = "okay";
 };
 
@@ -632,42 +632,61 @@
 	pinctrl-0 = <&i2c0_scl_m_pins>, <&i2c0_sda_m_pins>;
 	pinctrl-1 = <&gpio4_a19_pins>, <&gpio4_a20_pins>;
 
-	es7243l: es7243l@16 {
-		compatible = "es7243l_MicArray_0";
-		reg = <0x16>;
-		#sound-dai-cells = <0>;
-	};
-	es8156: es8156@9 {
-		compatible = "everest,es8156";
-		reg = <0x9>;
+
+	es7210: es7210@40 {
+		compatible = "es7210_MicArray_0";
+		reg = <0x40>;
 		#sound-dai-cells = <0>;
 	};
 
-	typec: sgm7220@47 {
-		compatible = "axera,sgm7220";
-		reg = <0x47>;
-		int-gpio = <&port4a 14 0>;
-		chanel-sel = <&port4a 11 0>;
-		bind-usb = "30c00000.dwc3";
+	// 未知
+	// es8156: es8156@9 {
+	// 	compatible = "everest,es8156";
+	// 	reg = <0x9>;
+	// 	#sound-dai-cells = <0>;
+	// };
+	es8311: es8311@18 {
+		compatible = "ambarella,es8311";
+		reg = <0x18>;
+		#sound-dai-cells = <0>;
+	};
+
+
+
+
+	// NC
+	// typec: sgm7220@47 {
+	// 	compatible = "axera,sgm7220";
+	// 	reg = <0x47>;
+	// 	int-gpio = <&port4a 14 0>;
+	// 	chanel-sel = <&port4a 11 0>;
+	// 	bind-usb = "30c00000.dwc3";
+	// 	status = "okay";
+	// };
+
+	// tp2912: tp2912@45 {
+	// 	compatible = "axera,tp2912";
+	// 	reg = <0x45>;
+	// 	reset-gpio = <&port2a 1 0>;
+	// 	status = "disabled";
+	// };
+
+	// icm42607: icm42607@68 {
+	// 	compatible = "axera,icm42607";
+	// 	reg = <0x68>;
+	// };
+	// at8563: at8563@51 {
+	// 	compatible = "analogtek,at8563";
+	// 	reg = <0x51>;
+	// 	status = "disabled";
+	// };
+	bm8563: bm8563@51 {
+		compatible = "analogtek,at8563";
+		reg = <0x51>;
 		status = "okay";
 	};
 
-	tp2912: tp2912@45 {
-		compatible = "axera,tp2912";
-		reg = <0x45>;
-		reset-gpio = <&port2a 1 0>;
-		status = "disabled";
-	};
 
-	icm42607: icm42607@68 {
-		compatible = "axera,icm42607";
-		reg = <0x68>;
-	};
-	at8563: at8563@51 {
-		compatible = "analogtek,at8563";
-		reg = <0x51>;
-		status = "disabled";
-	};
 
 };
 
