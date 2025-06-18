@@ -67,6 +67,7 @@
 
 	usb30: dwc3@0x30c00000 {
 		compatible = "snps,dwc3";
+		dr_mode = "host";
 		status = "okay";
 	};
 
@@ -291,46 +292,37 @@
 	};
 
 	aliases {
-		pcie0 = &pcie0_ep;
+		pcie0 = &pcie0_rc;
 		pcie1 = &pcie1_rc;
 
 		ethernet0 = &eth0;
 		ethernet1 = &eth1;
 	};
 
-	sound {
+	
+	sound0 {
 		status = "okay";
 		compatible = "simple-audio-card";
-		simple-audio-card,name = "Axera Audio";
-		simple-audio-card,widgets =
-			"Microphone", "Mic Jack",
-			"Headphone", "Headphone Jack";
-		simple-audio-card,routing =
-			"Headphone Jack", "LOUT",
-			"Headphone Jack", "ROUT",
-			"INPUT", "Mic Jack";
+		simple-audio-card,name = "M5stack Audio";
+		simple-audio-card,widgets = "Speaker", "Speaker es8311";
+		simple-audio-card,routing = "Speaker es8311", "DAC SDP SRC MUX";
 		#address-cells = <1>;
 		#size-cells = <0>;
+
 		simple-audio-card,dai-link@0 {
 			format = "i2s";
+			playback-only;
 			cpu {
-				sound-dai = <&i2s_mst2>;
+				sound-dai = <&i2s_mst0>;
 			};
 			codec {
-				sound-dai = <&hdmi0>;
+				sound-dai = <&es8311>;
+				system-clock-frequency = <12288000>;
 			};
 		};
 		simple-audio-card,dai-link@1 {
 			format = "i2s";
-			cpu {
-				sound-dai = <&i2s_mst3>;
-			};
-			codec {
-				sound-dai = <&hdmi1>;
-			};
-		};
-		simple-audio-card,dai-link@2 {
-			format = "i2s";
+			capture-only;
 			cpu {
 				sound-dai = <&i2s_mst0>;
 			};
@@ -339,14 +331,40 @@
 				system-clock-frequency = <12288000>;
 			};
 		};
-		simple-audio-card,dai-link@3 {
+	};
+
+	sound1 {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "Axera HDMI0 Audio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		simple-audio-card,dai-link@0 {
 			format = "i2s";
+			playback-only;
 			cpu {
-				sound-dai = <&i2s_mst0>;
+				sound-dai = <&i2s_mst2>;
 			};
 			codec {
-				sound-dai = <&es8311>;
-				system-clock-frequency = <12288000>;
+				sound-dai = <&hdmi0>;
+			};
+		};
+	};
+
+	sound2 {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "Axera HDMI1 Audio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		simple-audio-card,dai-link@0 {
+			format = "i2s";
+			playback-only;
+			cpu {
+				sound-dai = <&i2s_mst3>;
+			};
+			codec {
+				sound-dai = <&hdmi1>;
 			};
 		};
 	};
@@ -439,9 +457,35 @@
 		logstate = /bits/ 8 <1 1>;
 		loglevel = /bits/ 8 <4 4>;
 	};
+
+	leds {
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio4_a10_pins>;
+		compatible = "gpio-leds";
+		led0 {
+			label = "spk_switch";
+			gpios = <&port4a 10 0>;
+			default-state = "on";
+		};
+	};
+
 };
 
 &emmc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&emmc_reset_n_pins>, 
+				<&emmc_clk_pins>,
+				<&emmc_cmd_pins>,
+				<&emmc_ds_pins>,
+				<&emmc_dat0_pins>,
+				<&emmc_dat1_pins>,
+				<&emmc_dat2_pins>,
+				<&emmc_dat3_pins>,
+				<&emmc_dat4_pins>,
+				<&emmc_dat5_pins>,
+				<&emmc_dat6_pins>,
+				<&emmc_dat7_pins>;
+
 	sdhci-caps-mask = <0x2 0x03200000>;
 	//sdhci-caps = <0x01000000>;//SDHCI_CAN_VDD_330
 	bus-width = <8>;
@@ -470,6 +514,16 @@
 };
 
 &sd {
+	pinctrl-names = "default";
+	pinctrl-0 = <&sd_clk_pins>, 
+				<&sd_cmd_pins>,
+				<&sd_dat0_pins>,
+				<&sd_dat1_pins>,
+				<&sd_dat2_pins>,
+				<&sd_dat3_pins>,
+				<&sd_card_detect_n_pins>,
+				<&sd_pwr_en_pins>;
+
 	sdhci-caps-mask = <0x7 0x00200000>;
 	bus-width = <4>;
 	max-frequency = <200000000>;
@@ -527,30 +581,47 @@
 };
 
 &ax_uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_txd_pins>, 
+				<&uart0_rxd_pins>;
 	status = "okay";
 };
 
 &ax_uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart1_txd_pins>, 
+				<&uart1_rxd_pins>;
 	// dmas = <&dmac 42 &dmac 43>;
 	// dma-names = "tx", "rx";
-	status = "disabled";
+	status = "okay";
 };
 
 &ax_uart3 {
-	dmas = <&dmac 42 &dmac 43>;
-	dma-names = "tx", "rx";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart3_txd_pins>, 
+				<&uart3_rxd_pins>;
+	// dmas = <&dmac 42 &dmac 43>;
+	// dma-names = "tx", "rx";
 	status = "okay";
 };
 
 &pcie0_rc {
-    status = "disabled";
-};
-
-&pcie0_ep {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie0_clkreq_n_pins>,
+				<&pcie0_pewake_n_pins>,
+				<&gpio3_a9_pins>;
     status = "okay";
 };
 
+&pcie0_ep {
+    status = "disabled";
+};
+
 &pcie1_rc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie1_clkreq_n_pins>,
+				<&pcie1_pewake_n_pins>,
+				<&gpio4_a21_pins>;
     status = "okay";
 };
 
@@ -580,6 +651,13 @@
 };
 
 &i2s_mst0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&iis0_mclk_pins>, 
+				<&iis0_lrck_pins>,
+				<&iis0_sclk_pins>,
+				<&iis0_dout_pins>,
+				<&iis0_din0_pins>;
+	interrupts = <GIC_SPI 167 IRQ_TYPE_LEVEL_HIGH>;
 	status = "okay";
 	reg = <0x0 0x2033000 0x0 0x800>,
 		<0x0 0x4251A00 0x0 0x200>,
@@ -631,29 +709,25 @@
 	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&i2c0_scl_m_pins>, <&i2c0_sda_m_pins>;
 	pinctrl-1 = <&gpio4_a19_pins>, <&gpio4_a20_pins>;
-
+	clock-frequency = <100000>;
 
 	es7210: es7210@40 {
 		compatible = "es7210_MicArray_0";
 		reg = <0x40>;
 		#sound-dai-cells = <0>;
+		status = "okay";
 	};
-
-	// 未知
-	// es8156: es8156@9 {
-	// 	compatible = "everest,es8156";
-	// 	reg = <0x9>;
-	// 	#sound-dai-cells = <0>;
-	// };
 	es8311: es8311@18 {
 		compatible = "ambarella,es8311";
 		reg = <0x18>;
 		#sound-dai-cells = <0>;
+		status = "okay";
 	};
-
-
-
-
+	bm8563: bm8563@51 {
+		compatible = "analogtek,at8563";
+		reg = <0x51>;
+		status = "okay";
+	};
 	// NC
 	// typec: sgm7220@47 {
 	// 	compatible = "axera,sgm7220";
@@ -663,35 +737,10 @@
 	// 	bind-usb = "30c00000.dwc3";
 	// 	status = "okay";
 	// };
-
-	// tp2912: tp2912@45 {
-	// 	compatible = "axera,tp2912";
-	// 	reg = <0x45>;
-	// 	reset-gpio = <&port2a 1 0>;
-	// 	status = "disabled";
-	// };
-
-	// icm42607: icm42607@68 {
-	// 	compatible = "axera,icm42607";
-	// 	reg = <0x68>;
-	// };
-	// at8563: at8563@51 {
-	// 	compatible = "analogtek,at8563";
-	// 	reg = <0x51>;
-	// 	status = "disabled";
-	// };
-	bm8563: bm8563@51 {
-		compatible = "analogtek,at8563";
-		reg = <0x51>;
-		status = "okay";
-	};
-
-
-
 };
 
 &i2c1 {
-	status = "okay";
+	status = "disabled";
 	scl-gpio = <&port2a 23 0>;
 	sda-gpio = <&port2a 24 0>;
 	pinctrl-names = "default", "gpio";
@@ -718,7 +767,7 @@
 };
 
 &i2c9 {
-	status = "okay";
+	status = "disabled";
 	clock-frequency = <100000>;
 	i2c-sda-hold-time-ns = <2000>;
 	i2c-scl-falling-time-ns = <300>;
@@ -733,10 +782,10 @@
 };
 
 &spi0 {
-	status = "okay";
+	status = "disabled";
 	rx-sample-delay-ns = <40>;
 	spidev_user@0 {
-		status = "okay";
+		status = "disabled";
 		compatible = "axera,spi-sensor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
@@ -745,6 +794,7 @@
 		compatible = "axera,icm42652_spi";
 		spi-max-frequency = <10000000>;
 		reg = <1>;    /*SPI channel 0*/
+		status = "disabled";
 	};
 };
 
@@ -1176,7 +1226,24 @@
 
 	phy-handle = <&phy0>;
 	phy-mode = "rgmii";
-
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy0_clk_pins>, 
+				<&ephy0_rstn_pins>,
+				<&rgmii0_mdck_pins>,
+				<&rgmii0_mdio_pins>,
+				<&rgmii0_rxclk_pins>,
+				<&rgmii0_rxdv_pins>,
+				<&rgmii0_rxd0_pins>,
+				<&rgmii0_rxd1_pins>,
+				<&rgmii0_rxd2_pins>,
+				<&rgmii0_rxd3_pins>,
+				<&rgmii0_txclk_pins>,
+				<&rgmii0_txen_pins>,
+				<&rgmii0_txd0_pins>,
+				<&rgmii0_txd1_pins>,
+				<&rgmii0_txd2_pins>,
+				<&rgmii0_txd3_pins>,
+				<&gpio0_a7_pins>;
 	mdio {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -1190,8 +1257,8 @@
 			jl2xxx,led-polarity = <JL2XXX_LED_POLARITY>;
 			jl2xxx,patch-enable = <JL2XXX_PATCH_CTRL_EN>;
 			jl2xxx,rgmii-enable = <JL2XXX_RGMII_CTRL_EN>;
-			jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
-			jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
+			// jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
+			// jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
 			jl2xxx,clk-enable = <JL2XXX_CLK_CTRL_EN>;
 			jl2xxx,fld-enable = <JL2XXX_FLD_CTRL_EN>;
 			jl2xxx,fld-delay = <JL2XXX_FLD_DELAY>;
@@ -1212,10 +1279,26 @@
 
 &eth1 {
 	status = "okay";
-
 	phy-handle = <&phy1>;
 	phy-mode = "rgmii";
-
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy1_clk_pins>, 
+				<&ephy1_rstn_pins>,
+				<&rgmii1_mdck_pins>,
+				<&rgmii1_mdio_pins>,
+				<&rgmii1_rxclk_pins>,
+				<&rgmii1_rxdv_pins>,
+				<&rgmii1_rxd0_pins>,
+				<&rgmii1_rxd1_pins>,
+				<&rgmii1_rxd2_pins>,
+				<&rgmii1_rxd3_pins>,
+				<&rgmii1_txclk_pins>,
+				<&rgmii1_txen_pins>,
+				<&rgmii1_txd0_pins>,
+				<&rgmii1_txd1_pins>,
+				<&rgmii1_txd2_pins>,
+				<&rgmii1_txd3_pins>,
+				<&gpio1_a11_pins>;
 	mdio {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -1229,8 +1312,8 @@
 			jl2xxx,led-polarity = <JL2XXX_LED_POLARITY>;
 			jl2xxx,patch-enable = <JL2XXX_PATCH_CTRL_EN>;
 			jl2xxx,rgmii-enable = <JL2XXX_RGMII_CTRL_EN>;
-			jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
-			jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
+			// jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
+			// jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
 			jl2xxx,clk-enable = <JL2XXX_CLK_CTRL_EN>;
 			jl2xxx,fld-enable = <JL2XXX_FLD_CTRL_EN>;
 			jl2xxx,fld-delay = <JL2XXX_FLD_DELAY>;
