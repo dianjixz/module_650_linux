@@ -656,7 +656,8 @@
 				<&iis0_lrck_pins>,
 				<&iis0_sclk_pins>,
 				<&iis0_dout_pins>,
-				<&iis0_din0_pins>;
+				<&iis0_din0_pins>,
+				<&gpio4_a10_pins>;
 	interrupts = <GIC_SPI 167 IRQ_TYPE_LEVEL_HIGH>;
 	status = "okay";
 	reg = <0x0 0x2033000 0x0 0x800>,
