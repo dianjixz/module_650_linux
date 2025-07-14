@@ -2446,7 +2446,7 @@
 	        pins = "GPIO4_A19";
 	        drive-strength = <3>;
 	        input-schmitt-enable = <0>;
-	        bias-pull-up;
+	        bias-disable;
 	    };
 	};
 	uart5_ctsn_pins: uart5_ctsn{
@@ -2480,6 +2480,18 @@
 	    };
 	    configs {
 	        pins = "GPIO4_A20";
+	        drive-strength = <3>;
+	        input-schmitt-enable = <0>;
+	        bias-disable;
+	    };
+	};
+	gpio4_a21_pins: gpio4_a21{
+	    mux {
+	        pins = "GPIO4_A21";
+	        function = "gpio4_a21";
+	    };
+	    configs {
+	        pins = "GPIO4_A21";
 	        drive-strength = <3>;
 	        input-schmitt-enable = <0>;
 	        bias-disable;
@@ -3011,6 +3023,7 @@
 	        drive-strength = <3>;
 	        input-schmitt-enable = <0>;
 	        bias-disable;
+			output-high;
 	    };
 	};
 	iis0_din1_pins: iis0_din1{
