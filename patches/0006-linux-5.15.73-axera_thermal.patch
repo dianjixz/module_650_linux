@@ -1,0 +1,59 @@
+diff -r -u linux-5.15.73/drivers/thermal/axera_thermal.c linux-5.15.73.tmp/drivers/thermal/axera_thermal.c
+--- a/drivers/thermal/axera_thermal.c	2025-10-31 11:34:18.909591991 +0800
++++ b/drivers/thermal/axera_thermal.c	2025-10-31 11:29:26.515833410 +0800
+@@ -40,7 +40,8 @@
+ struct axera_thermal_sensor {
+ 	struct thermal_zone_device *tzd;
+ 	u32 id;
+-	u32 thres[3];
++	u32 thres[128];
++	u32 hyst[128];
+ };
+ 
+ struct adc_value {
+@@ -362,8 +363,37 @@
+ 	return 0;
+ }
+ 
++static int axera_thermal_get_trend(void *__data,
++                                   int trip, enum thermal_trend *trend)
++{
++	struct axera_thermal_data *data = __data;
++    int trip_temp, trip_hyst, temp;
++	int ret;
++	ret = thermal_zone_get_temp(data->sensor.tzd, &temp);
++    if (ret) {
++        dev_err(&data->pdev->dev,
++            "Failed to get temperature: %d\n", ret);
++        return ret;
++    }
++
++    trip_temp = data->sensor.thres[trip];
++    trip_hyst = data->sensor.hyst[trip];
++    if (temp >= trip_temp) {
++        *trend = THERMAL_TREND_RAISING;
++    } else if (temp < (trip_temp - trip_hyst)) {
++        *trend = THERMAL_TREND_DROPPING;
++    } else {
++        *trend = THERMAL_TREND_STABLE;
++    }
++    dev_dbg(&data->pdev->dev,"trip=%d, temp=%d, trip_temp=%d, hyst=%d, trend=%d\n",
++            trip, temp, trip_temp, trip_hyst, *trend);
++    
++    return 0;
++}
++
+ static const struct thermal_zone_of_device_ops axera_of_thermal_ops = {
+ 	.get_temp = axera_thermal_get_temp,
++	.get_trend = axera_thermal_get_trend,
+ };
+ 
+ static int axera_thermal_register_sensor(struct platform_device *pdev,
+@@ -386,6 +416,7 @@
+ 
+ 	for (i = 0; i < of_thermal_get_ntrips(sensor->tzd); i++) {
+ 		sensor->thres[i] = trip[i].temperature;
++		sensor->hyst[i] = trip[i].hysteresis;
+ 	}
+ 
+ 	return 0;

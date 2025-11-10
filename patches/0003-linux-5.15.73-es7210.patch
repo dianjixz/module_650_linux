@@ -1,16 +1,6 @@
---- a/linux-5.15.73/sound/soc/codecs/es7210_config.h	2025-07-07 15:48:13.994071587 +0800
-+++ b/linux-5.15.73/sound/soc/codecs/es7210_config.h	2025-07-07 15:53:35.460222062 +0800
-@@ -26,8 +26,8 @@
- #define MIC_CHN_4       4
- #define MIC_CHN_2       2
- 
--#define ES7210_TDM_ENABLE       ENABLE
--#define ES7210_CHANNELS_MAX     MIC_CHN_4
-+#define ES7210_TDM_ENABLE       DISABLE
-+#define ES7210_CHANNELS_MAX     MIC_CHN_2
- 
- #if ES7210_CHANNELS_MAX == MIC_CHN_2
- #define ADC_DEV_MAXNUM  1
+diff -r -u linux-5.15.73/sound/soc/codecs/es7210_config.h linux-5.15.73.tmp/sound/soc/codecs/es7210_config.h
+--- a/sound/soc/codecs/es7210_config.h	2025-10-31 11:34:18.913592070 +0800
++++ b/sound/soc/codecs/es7210_config.h	2025-10-31 11:29:19.727699720 +0800
 @@ -68,8 +68,8 @@
  #define ES7210_NORMAL_DSPB                      11
  

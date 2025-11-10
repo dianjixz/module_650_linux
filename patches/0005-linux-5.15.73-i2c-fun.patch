@@ -1,0 +1,315 @@
+diff -r -u linux-5.15.73/drivers/thermal/Makefile linux-5.15.73.tmp/drivers/thermal/Makefile
+--- a/drivers/thermal/Makefile	2025-10-31 11:34:18.905591912 +0800
++++ b/drivers/thermal/Makefile	2025-10-31 11:29:26.515833410 +0800
+@@ -61,3 +61,4 @@
+ obj-$(CONFIG_SPRD_THERMAL)	+= sprd_thermal.o
+ obj-$(CONFIG_KHADAS_MCU_FAN_THERMAL)	+= khadas_mcu_fan.o
+ obj-$(CONFIG_AXERA_THERMAL)     += axera_thermal.o
++obj-y += i2c-fun.o
+\ 文件尾没有换行符
+--- a/dev/null	2025-09-11 09:16:00.815999781 +0800
++++ b/drivers/thermal/i2c-fun.c	2025-10-31 11:29:26.523833567 +0800
+@@ -0,0 +1,302 @@
++// i2c_fan.c
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/thermal.h>
++#include <linux/delay.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/sysfs.h>
++
++#define DRIVER_NAME          "i2c_fan"
++#define I2C_FAN_REG_PWM      0x00
++#define I2C_FAN_REG_RPM_LOW  0x10
++#define I2C_FAN_REG_RPM_HIGH 0x11
++#define PWM_MIN              20
++#define PWM_MAX              100
++#define MAX_COOLING_LEVELS   16
++
++
++
++
++
++struct i2c_fan_data {
++	struct thermal_cooling_device *cdev;
++    struct i2c_client *client;
++    struct mutex lock;
++    u8 pwm;
++    u32 rpm;
++    u32 *cooling_levels;
++    int num_cooling_levels;
++};
++
++static int i2c_fan_write_reg(struct i2c_client *client, u8 reg, u8 value)
++{
++    return i2c_smbus_write_byte_data(client, reg, value);
++}
++
++static int i2c_fan_read_reg(struct i2c_client *client, u8 reg)
++{
++    return i2c_smbus_read_byte_data(client, reg);
++}
++
++/* 读取风扇转速 */
++static int i2c_fan_read_rpm(struct i2c_fan_data *data)
++{
++    struct i2c_client *client = data->client;
++    int low, high;
++
++    mutex_lock(&data->lock);
++
++    low = i2c_fan_read_reg(client, I2C_FAN_REG_RPM_LOW);
++    if (low < 0) {
++        mutex_unlock(&data->lock);
++        return low;
++    }
++
++    high = i2c_fan_read_reg(client, I2C_FAN_REG_RPM_HIGH);
++    if (high < 0) {
++        mutex_unlock(&data->lock);
++        return high;
++    }
++
++    data->rpm = (high << 8) | low;
++    mutex_unlock(&data->lock);
++
++    return 0;
++}
++
++
++static ssize_t fan_cur_speed_show(struct device *dev,
++    struct device_attribute *attr,
++    char *buf)
++{
++    struct i2c_fan_data *data = dev_get_drvdata(dev);
++
++    // 确认最新 RPM
++    i2c_fan_read_rpm(data);
++    return sprintf(buf, "%u\n", data->rpm);
++}
++static DEVICE_ATTR_RO(fan_cur_speed);
++static struct attribute *fan_attrs[] = {
++    &dev_attr_fan_cur_speed.attr,
++    NULL,
++};
++static const struct attribute_group fan_attr_group = {
++    .attrs = fan_attrs,
++};
++
++/* 将cooling level转换为PWM值 */
++static u8 cooling_level_to_pwm(struct i2c_fan_data *data, unsigned long level)
++{
++    u32 pwm_raw;
++
++    if (!data->cooling_levels || level >= data->num_cooling_levels)
++        return PWM_MIN;
++
++    pwm_raw = data->cooling_levels[level];
++
++    /* 将0-255范围映射到PWM_MIN-PWM_MAX */
++    if (pwm_raw == 0)
++        return PWM_MIN;
++
++    return PWM_MIN + ((pwm_raw * (PWM_MAX - PWM_MIN)) / 255);
++}
++
++/* 设置PWM值 */
++static int i2c_fan_set_pwm(struct i2c_fan_data *data, u8 pwm)
++{
++    struct i2c_client *client = data->client;
++    int ret;
++
++    if (pwm < PWM_MIN || pwm > PWM_MAX)
++        return -EINVAL;
++
++    mutex_lock(&data->lock);
++    ret = i2c_fan_write_reg(client, I2C_FAN_REG_PWM, pwm);
++    if (ret == 0)
++        data->pwm = pwm;
++    mutex_unlock(&data->lock);
++
++    return ret;
++}
++
++/* Thermal cooling device回调函数 */
++static int i2c_fan_get_max_state(struct thermal_cooling_device *cdev,
++                                unsigned long *state)
++{
++    struct i2c_fan_data *data = cdev->devdata;
++
++    if (data->cooling_levels)
++        *state = data->num_cooling_levels - 1;
++    else
++        *state = PWM_MAX - PWM_MIN;
++
++    return 0;
++}
++
++static int i2c_fan_get_cur_state(struct thermal_cooling_device *cdev,
++                                unsigned long *state)
++{
++    struct i2c_fan_data *data = cdev->devdata;
++    int i;
++
++    if (!data->cooling_levels) {
++        *state = data->pwm - PWM_MIN;
++        return 0;
++    }
++
++    /* 找到当前PWM对应的cooling level */
++    for (i = 0; i < data->num_cooling_levels; i++) {
++        u8 level_pwm = cooling_level_to_pwm(data, i);
++        if (data->pwm <= level_pwm) {
++            *state = i;
++            return 0;
++        }
++    }
++
++    *state = data->num_cooling_levels - 1;
++    return 0;
++}
++
++static int i2c_fan_set_cur_state(struct thermal_cooling_device *cdev,
++                                unsigned long state)
++{
++    struct i2c_fan_data *data = cdev->devdata;
++    u8 pwm;
++
++    if (data->cooling_levels)
++        pwm = cooling_level_to_pwm(data, state);
++    else
++        pwm = state + PWM_MIN;
++
++    return i2c_fan_set_pwm(data, pwm);
++}
++
++static struct thermal_cooling_device_ops i2c_fan_cooling_ops = {
++    .get_max_state = i2c_fan_get_max_state,
++    .get_cur_state = i2c_fan_get_cur_state,
++    .set_cur_state = i2c_fan_set_cur_state,
++};
++
++
++
++/* 解析设备树配置 */
++static int i2c_fan_parse_dt(struct i2c_fan_data *data)
++{
++    struct device *dev = &data->client->dev;
++    struct device_node *np = dev->of_node;
++    int ret, i;
++
++    if (!np)
++        return 0; /* 非设备树启动 */
++
++    /* 解析cooling-levels */
++    data->num_cooling_levels = of_property_count_u32_elems(np, "cooling-levels");
++    if (data->num_cooling_levels > 0) {
++        if (data->num_cooling_levels > MAX_COOLING_LEVELS) {
++            dev_warn(dev, "Too many cooling levels, truncating to %d\n",
++                    MAX_COOLING_LEVELS);
++            data->num_cooling_levels = MAX_COOLING_LEVELS;
++        }
++
++        data->cooling_levels = devm_kzalloc(dev,
++                                          sizeof(u32) * data->num_cooling_levels,
++                                          GFP_KERNEL);
++        if (!data->cooling_levels)
++            return -ENOMEM;
++
++        ret = of_property_read_u32_array(np, "cooling-levels",
++                                       data->cooling_levels,
++                                       data->num_cooling_levels);
++        if (ret) {
++            dev_err(dev, "Failed to parse cooling-levels: %d\n", ret);
++            return ret;
++        }
++
++        dev_info(dev, "Cooling levels: ");
++        for (i = 0; i < data->num_cooling_levels; i++) {
++            printk(KERN_CONT "%d ", data->cooling_levels[i]);
++        }
++        printk(KERN_CONT "\n");
++    }
++    return 0;
++}
++
++
++
++static int i2c_fan_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++    struct i2c_fan_data *data;
++    int ret;
++	struct thermal_cooling_device *cdev;
++	struct device *dev = &client->dev;
++
++    if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++        dev_err(&client->dev, "I2C adapter doesn't support required functionality\n");
++        return -EIO;
++    }
++
++	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++    data->client = client;
++	mutex_init(&data->lock);
++	i2c_set_clientdata(client, data);
++
++    i2c_fan_parse_dt(data);
++
++	cdev = thermal_of_cooling_device_register(dev->of_node, DRIVER_NAME,
++        data, &i2c_fan_cooling_ops);
++	if (IS_ERR(cdev)) {
++		ret = PTR_ERR(cdev);
++		dev_err(dev, "Failed to register khadas-mcu-fan as cooling device: %d\n",
++			ret);
++		return ret;
++	}
++
++    dev_set_drvdata(&cdev->device, data);
++    ret = devm_device_add_group(&cdev->device, &fan_attr_group);
++    if (ret) {
++        dev_warn(dev, "Failed to create sysfs attributes: %d\n", ret);
++    }
++
++	data->cdev = cdev;
++    dev_info(&client->dev, "I2C fan driver initialized successfully\n");
++    return 0;
++}
++static int i2c_fan_remove(struct i2c_client *client)
++{
++    struct i2c_fan_data *data = i2c_get_clientdata(client);
++    if (data->cdev)
++        thermal_cooling_device_unregister(data->cdev);
++    dev_info(&client->dev, "I2C fan driver removed\n");
++    return 0;
++}
++
++static const struct i2c_device_id i2c_fan_id[] = {{"i2c_fan", 0}, {}};
++MODULE_DEVICE_TABLE(i2c, i2c_fan_id);
++
++static const struct of_device_id i2c_fan_of_match[] = {{.compatible = "m5stack,i2c-fan"}, {}};
++MODULE_DEVICE_TABLE(of, i2c_fan_of_match);
++
++static struct i2c_driver i2c_fan_driver = {
++    .driver =
++        {
++            .name           = DRIVER_NAME,
++            .of_match_table = i2c_fan_of_match,
++        },
++    .probe    = i2c_fan_probe,
++    .remove   = i2c_fan_remove,
++    .id_table = i2c_fan_id,
++};
++
++module_i2c_driver(i2c_fan_driver);
++
++MODULE_AUTHOR("dianjixz <dianjixz@m5stack.com>");
++MODULE_DESCRIPTION("I2C Fan Driver with Thermal Control");
++MODULE_LICENSE("GPL v2");
+\ 文件尾没有换行符

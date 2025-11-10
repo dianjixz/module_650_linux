@@ -1,0 +1,52 @@
+diff -r -u linux-5.15.73/sound/soc/codecs/es8311.c linux-5.15.73.tmp/sound/soc/codecs/es8311.c
+--- a/sound/soc/codecs/es8311.c	2025-10-31 11:34:18.917592148 +0800
++++ b/sound/soc/codecs/es8311.c	2025-10-31 11:29:19.731699799 +0800
+@@ -24,6 +24,8 @@
+ #include <linux/slab.h>
+ #include <linux/regmap.h>
+ #include <linux/stddef.h>
++#include <linux/gpio/consumer.h>
++#include <linux/of_gpio.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -127,6 +129,7 @@
+ struct	es8311_private {
+ 	struct snd_soc_component *codec;
+ 	struct regmap *regmap;
++	struct gpio_desc *mute_gpio;
+ 	u32 mclk;
+ 	bool sclkinv;
+ 	bool mclkinv;
+@@ -613,6 +616,8 @@
+ 		daciface |= 0x23;
+ 		break;
+ 	default:
++		dump_stack();
++		printk("ES8311 unsupported Format(%x)\n", fmt);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -867,7 +872,11 @@
+ static int es8311_mute(struct snd_soc_dai *dai, int mute, int direction)
+ {
+ 	struct snd_soc_component *codec = dai->component;
++	struct es8311_private *es8311 = es8311_data;
++
+ 	printk("Enter into %s(), mute = %d\n", __func__, mute);
++	if (!IS_ERR_OR_NULL(es8311->mute_gpio))
++		gpiod_set_value(es8311->mute_gpio, mute ? 0 : 1);
+ 	if (mute) {
+ 		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
+ 		snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x60);
+@@ -1248,6 +1257,10 @@
+ 		dev_err(&i2c_client->dev, "regmap_init() failed: %d\n", ret);
+ 		return ret;
+ 	}
++	es8311->mute_gpio = devm_gpiod_get_optional(&i2c_client->dev, "mute", GPIOD_ASIS);
++	if (!IS_ERR_OR_NULL(es8311->mute_gpio))
++		gpiod_direction_output(es8311->mute_gpio, 1);
++
+ 	//dev_set_drvdata(&i2c_client->dev,  es8311);
+ 	es8311_data = es8311;
+ 	printk("Enter into %s---3\n", __func__);

@@ -3096,6 +3096,7 @@
 	        drive-strength = <3>;
 	        input-schmitt-enable = <0>;
 	        bias-disable;
+			output-high;
 	    };
 	};
 	usb3_ovrcur0_pins: usb3_ovrcur0{

@@ -299,16 +299,14 @@
 		ethernet1 = &eth1;
 	};
 
-	
 	sound0 {
 		status = "okay";
 		compatible = "simple-audio-card";
-		simple-audio-card,name = "M5stack Audio";
+		simple-audio-card,name = "Axera Audio";
 		simple-audio-card,widgets = "Speaker", "Speaker es8311";
 		simple-audio-card,routing = "Speaker es8311", "DAC SDP SRC MUX";
 		#address-cells = <1>;
 		#size-cells = <0>;
-
 		simple-audio-card,dai-link@0 {
 			format = "i2s";
 			playback-only;
@@ -332,11 +330,11 @@
 			};
 		};
 	};
-
+	
 	sound1 {
 		status = "okay";
 		compatible = "simple-audio-card";
-		simple-audio-card,name = "Axera HDMI0 Audio";
+		simple-audio-card,name = "Axera Hdmi Audio";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		simple-audio-card,dai-link@0 {
@@ -349,15 +347,7 @@
 				sound-dai = <&hdmi0>;
 			};
 		};
-	};
-
-	sound2 {
-		status = "okay";
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "Axera HDMI1 Audio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		simple-audio-card,dai-link@0 {
+		simple-audio-card,dai-link@1 {
 			format = "i2s";
 			playback-only;
 			cpu {
@@ -368,6 +358,7 @@
 			};
 		};
 	};
+	
 
 	vfb0: vfb@0 {
 		compatible = "axera,vfb";
@@ -460,11 +451,11 @@
 
 	leds {
 		pinctrl-names = "default";
-		pinctrl-0 = <&gpio4_a10_pins>;
+		pinctrl-0 = <&gpio4_a11_pins>;
 		compatible = "gpio-leds";
 		led0 {
 			label = "spk_switch";
-			gpios = <&port4a 10 0>;
+			gpios = <&port4a 11 0>;
 			default-state = "on";
 		};
 	};
@@ -651,14 +642,6 @@
 };
 
 &i2s_mst0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&iis0_mclk_pins>, 
-				<&iis0_lrck_pins>,
-				<&iis0_sclk_pins>,
-				<&iis0_dout_pins>,
-				<&iis0_din0_pins>,
-				<&gpio4_a10_pins>;
-	interrupts = <GIC_SPI 167 IRQ_TYPE_LEVEL_HIGH>;
 	status = "okay";
 	reg = <0x0 0x2033000 0x0 0x800>,
 		<0x0 0x4251A00 0x0 0x200>,
@@ -676,6 +659,7 @@
 	iis2-func-sel = <0>;
 	iis3-func-sel = <0>;
 };
+
 
 &i2s_mst2 {
 	status = "okay";
@@ -722,6 +706,7 @@
 		compatible = "ambarella,es8311";
 		reg = <0x18>;
 		#sound-dai-cells = <0>;
+		mute-gpio = <&port4a 11 0>;
 		status = "okay";
 	};
 	bm8563: bm8563@51 {
@@ -1381,3 +1366,91 @@
 &timer5 {
 	status = "disabled";
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
