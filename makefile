@@ -80,7 +80,7 @@ endif
 # 主要目标
 # ============================================================================
 
-SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image modules kernelrelease
+SIGN_EXTS := all vmlinux Image zImage bzImage uImage  modules modules_install modules_prepare config menuconfig  defconfig  oldconfig savedefconfig clean mrproper install tar-pkg rpm-pkg deb-pkg kernelrelease %_defconfig %.dtb
 
 define SIGN_RULE
 $(1): _build_init
