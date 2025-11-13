@@ -59,7 +59,7 @@ endif
 BUILD_DIR           := build
 SRC_DIR             := $(BUILD_DIR)/linux-$(LINUX_VERSION)
 LINUX_TAR_NAME      := $(LINUX_TAR_SHA)-linux-$(LINUX_VERSION).tar.gz
-LINUX_TAR			:= .$(LINUX_TAR_NAME)
+LINUX_TAR			:= $(DL_DIR)/.$(LINUX_TAR_NAME)
 
 # 收集源文件
 PATCHES             := $(sort $(wildcard $(PATCH_DIR)/*.patch))
@@ -81,7 +81,7 @@ endif
 # 主要目标
 # ============================================================================
 
-SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %_dtb
+SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image
 
 define SIGN_RULE
 $(1): _build_init
@@ -108,7 +108,7 @@ Extracting: $(BUILD_DIR)/.stamp_extract
 # 内部辅助目标（不直接调用）
 # ============================================================================
 
-$(BUILD_DIR)/.stamp_config : $(CONFIG_FILES) $(BUILD_DIR)/.stamp_extract
+$(BUILD_DIR)/.stamp_config : $(CONFIG_FILES) $(BUILD_DIR)/.stamp_patching
 	cat $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(BASE_DEFCONFIG)	$(CONFIG_FILES) > $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(TARGET_DEFCONFIG) && touch $@
 
 $(BUILD_DIR)/.stamp_patching : $(PATCHES) $(BUILD_DIR)/.stamp_extract
