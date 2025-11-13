@@ -80,7 +80,7 @@ endif
 # 主要目标
 # ============================================================================
 
-SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image modules
+SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image modules kernelrelease
 
 define SIGN_RULE
 $(1): _build_init
