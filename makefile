@@ -36,7 +36,7 @@ CONFIG_DIR          := defconfigs
 # 下载目录配置
 # ----------------------------------------------------------------------------
 # 外部下载目录路径
-DOWNLOAD_DIR        := ../../../dl
+DOWNLOAD_DIR        := $(PWD)/dl
 
 # ----------------------------------------------------------------------------
 # 交叉编译配置（如需要请取消注释）
@@ -48,6 +48,12 @@ DOWNLOAD_DIR        := ../../../dl
 # ============================================================================
 # 内部变量 - 通常不需要修改
 # ============================================================================
+# 确定下载目录
+
+DL_DIR := .
+ifneq ($(wildcard $(DOWNLOAD_DIR)),)
+	DL_DIR := $(DOWNLOAD_DIR)
+endif
 
 # 目录和文件定义
 BUILD_DIR           := build
@@ -62,30 +68,28 @@ CONFIG_FILES        := $(wildcard $(CONFIG_DIR)/*.config)
 SYMLINK_DIRS      	:= arch scripts include
 
 
-# 确定下载目录
 
-DL_DIR := .
-ifneq ($(wildcard $(DOWNLOAD_DIR)),)
-	DL_DIR := $(DOWNLOAD_DIR)
-endif
 
 # 内核编译命令
 ifeq ($(strip $(M)),)
-	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
+	KERNEL_MAKE := +$(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
 else
-	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS) M=$(M)
+	KERNEL_MAKE := $(KERNEL_MAKE) M=$(M)
 endif
 
 # ============================================================================
 # 主要目标
 # ============================================================================
-# 默认规则：将未定义的目标传递给内核 Makefile
-%:
-	@if [ "$(MAKECMDGOALS)" != "_build_init" ] && \
-		[ "$(MAKECMDGOALS)" != "help" ]; then \
-		$(MAKE) _build_init; \
-		flock -n .kernel_build.lock -c '$(KERNEL_MAKE) $(filter-out _build_init,$(MAKECMDGOALS))' || exit 0 ; \
-	fi
+
+SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %_dtb
+
+define SIGN_RULE
+$(1): _build_init
+	$(KERNEL_MAKE) $(MAKECMDGOALS)
+endef
+
+$(foreach ext,$(SIGN_EXTS),$(eval $(call SIGN_RULE,$(ext))))
+
 
 # ============================================================================
 # 构建流程
@@ -121,7 +125,9 @@ $(BUILD_DIR)/.stamp_extract : $(LINUX_TAR)
 	 
 
 $(LINUX_TAR) : README.md
-	wget --passive-ftp -nd -t 3 -O '$(LINUX_TAR)' '$(LINUX_TAR_URL)' || rm -f '$(LINUX_TAR)'
+	@if [ ! -f "$(UBOOT_TAR)" ]; then \
+		wget --passive-ftp -nd -t 3 -O '$(UBOOT_TAR)' '$(UBOOT_TAR_URL)' || rm -f '$(UBOOT_TAR)'; \
+	fi
 
 
 
@@ -154,4 +160,3 @@ distclean:
 	@rm -f arch
 	@rm -f scripts
 	@rm -f include
-	@rm -f .kernel_build.lock
