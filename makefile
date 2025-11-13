@@ -4,7 +4,7 @@
 # ============================================================================
 # 配置区域 - 根据需求修改此部分
 # ============================================================================
-
+THIS_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 # ----------------------------------------------------------------------------
 # Linux 内核版本配置
 # ----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ CONFIG_DIR          := defconfigs
 # 下载目录配置
 # ----------------------------------------------------------------------------
 # 外部下载目录路径
-DOWNLOAD_DIR        := $(PWD)/dl
+DOWNLOAD_DIR        := $(THIS_DIR)/../../../dl
 
 # ----------------------------------------------------------------------------
 # 交叉编译配置（如需要请取消注释）
@@ -71,9 +71,8 @@ SYMLINK_DIRS      	:= arch scripts include
 
 
 # 内核编译命令
-ifeq ($(strip $(M)),)
-	KERNEL_MAKE := +$(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
-else
+KERNEL_MAKE := +$(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
+ifneq ($(strip $(M)),)
 	KERNEL_MAKE := $(KERNEL_MAKE) M=$(M)
 endif
 
@@ -81,7 +80,7 @@ endif
 # 主要目标
 # ============================================================================
 
-SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image
+SIGN_EXTS := all install modules_install deb-pkg rpm-pkg bzImage %_defconfig %.dtb oldconfig Image modules
 
 define SIGN_RULE
 $(1): _build_init
@@ -125,8 +124,10 @@ $(BUILD_DIR)/.stamp_extract : $(LINUX_TAR)
 	 
 
 $(LINUX_TAR) : README.md
-	@if [ ! -f "$(UBOOT_TAR)" ]; then \
-		wget --passive-ftp -nd -t 3 -O '$(UBOOT_TAR)' '$(UBOOT_TAR_URL)' || rm -f '$(UBOOT_TAR)'; \
+	@if [ ! -f "$(LINUX_TAR)" ]; then \
+		wget --passive-ftp -nd -t 3 -O '$(LINUX_TAR)' '$(LINUX_TAR_URL)' || rm -f '$(LINUX_TAR)'; \
+	else \
+		touch '$(LINUX_TAR)'; \
 	fi
 
 
