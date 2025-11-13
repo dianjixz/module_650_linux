@@ -1,4 +1,4 @@
-diff -r -u linux-5.15.73/drivers/thermal/Makefile linux-5.15.73.tmp/drivers/thermal/Makefile
+diff -r -u a/drivers/thermal/Makefile b/drivers/thermal/Makefile
 --- a/drivers/thermal/Makefile	2025-10-31 11:34:18.905591912 +0800
 +++ b/drivers/thermal/Makefile	2025-10-31 11:29:26.515833410 +0800
 @@ -61,3 +61,4 @@

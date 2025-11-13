@@ -1,6 +1,5 @@
-diff -r -u linux-5.15.73/sound/soc/codecs/es7210_config.h linux-5.15.73.tmp/sound/soc/codecs/es7210_config.h
---- a/sound/soc/codecs/es7210_config.h	2025-10-31 11:34:18.913592070 +0800
-+++ b/sound/soc/codecs/es7210_config.h	2025-10-31 11:29:19.727699720 +0800
+--- a/sound/soc/codecs/es7210_config.h	2025-11-13 11:46:51.612649236 +0800
++++ b/sound/soc/codecs/es7210_config.h	2025-11-13 11:47:15.321116359 +0800
 @@ -68,8 +68,8 @@
  #define ES7210_NORMAL_DSPB                      11
  
@@ -8,7 +7,7 @@ diff -r -u linux-5.15.73/sound/soc/codecs/es7210_config.h linux-5.15.73.tmp/soun
 -//#define ES7210_WORK_MODE    ES7210_NORMAL_I2S
 -#define ES7210_WORK_MODE    ES7210_TDM_1LRCK_DSPB
 +#define ES7210_WORK_MODE    ES7210_NORMAL_I2S
-+// #define ES7210_WORK_MODE    ES7210_TDM_1LRCK_DSPB
++//#define ES7210_WORK_MODE    ES7210_TDM_1LRCK_DSPB
  
  #define RATIO_MCLK_LRCK_64   64
  #define RATIO_MCLK_LRCK_128  128

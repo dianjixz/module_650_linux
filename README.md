@@ -9,9 +9,8 @@ source /opt/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bash.bashrc
 make distclean
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack_AX650C_emmc_arm64_defconfig
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j `nproc`
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack-ax650-lite.dtb
-axp_pack_bin build/linux-5.15.73/arch/arm64/boot/Image boot_signed.bin
-axp_pack_bin build/linux-5.15.73/arch/arm64/boot/dts/m5stack-ax650-lite.dtb AX650C_emmc_arm64_k515_signed.dtb
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack-ax650-AI-Pyramid.dtb
+make Packaxera
 ```
 
 just Extract:

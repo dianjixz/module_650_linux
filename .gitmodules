@@ -1,0 +1,3 @@
+[submodule "axerabin"]
+	path = axerabin
+	url = https://github.com/dianjixz/axerabin.git

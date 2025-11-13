@@ -29,20 +29,12 @@ TARGET_DEFCONFIG    := $(BOARD_NAME)_emmc_$(BOARD_ARCH)_defconfig
 # ----------------------------------------------------------------------------
 PATCH_DIR           := patches
 DTS_DIR             := linux-dts
-CONFIG_FRAGMENT_DIR := .
+CONFIG_DIR          := defconfigs
 
-# ----------------------------------------------------------------------------
-# 配置片段文件（按顺序合并）
-# ----------------------------------------------------------------------------
-CONFIG_FRAGMENTS    := fragment-03-systemd.config \
-					   linux-disable.config \
-					   linux-enable-m5stack.config
 
 # ----------------------------------------------------------------------------
 # 下载目录配置
 # ----------------------------------------------------------------------------
-# 是否使用外部下载目录（yes/no）
-USE_EXTERNAL_DL     := yes
 # 外部下载目录路径
 DOWNLOAD_DIR        := ../../../dl
 
@@ -61,270 +53,105 @@ DOWNLOAD_DIR        := ../../../dl
 BUILD_DIR           := build
 SRC_DIR             := $(BUILD_DIR)/linux-$(LINUX_VERSION)
 LINUX_TAR_NAME      := $(LINUX_TAR_SHA)-linux-$(LINUX_VERSION).tar.gz
+LINUX_TAR			:= .$(LINUX_TAR_NAME)
 
 # 收集源文件
 PATCHES             := $(sort $(wildcard $(PATCH_DIR)/*.patch))
-DTSS                := $(wildcard $(DTS_DIR)/*.dts*)
-CONFIG_FILES        := $(addprefix $(CONFIG_FRAGMENT_DIR)/,$(CONFIG_FRAGMENTS))
+DTSS                := $(wildcard $(DTS_DIR)/*.dts*) $(wildcard $(DTS_DIR)/*.h)
+CONFIG_FILES        := $(wildcard $(CONFIG_DIR)/*.config)
+SYMLINK_DIRS      	:= arch scripts include
 
-# 构建检查标记文件
-CHECK_BUILD_STAMP   := $(BUILD_DIR)/.stamp_extracted
-CHECK_DTS_STAMP     := $(BUILD_DIR)/.stamp_dts
-CHECK_PATCH_STAMP   := $(BUILD_DIR)/.stamp_patched
-CHECK_CONFIG_STAMP  := $(BUILD_DIR)/.stamp_configured
 
 # 确定下载目录
-ifeq ($(USE_EXTERNAL_DL),yes)
+
+DL_DIR := .
+ifneq ($(wildcard $(DOWNLOAD_DIR)),)
 	DL_DIR := $(DOWNLOAD_DIR)
-else
-	DL_DIR := .
 endif
 
 # 内核编译命令
 ifeq ($(strip $(M)),)
-	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) $(KERNEL_EXTRA_PARAMS)
+	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
 else
-	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) $(KERNEL_EXTRA_PARAMS) M=$(M)
+	KERNEL_MAKE := $(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS) M=$(M)
 endif
 
 # ============================================================================
 # 主要目标
 # ============================================================================
-
-.PHONY: all build_init help menuconfig savedefconfig
-.PHONY: extracting patching configuring
-.PHONY: distclean linux-distclean mrproper
-.PHONY: show-config list-patches list-dts
-
 # 默认规则：将未定义的目标传递给内核 Makefile
 %:
-	@if [ "$(MAKECMDGOALS)" != "build_init" ] && \
-		[ "$(MAKECMDGOALS)" != "help" ] && \
-		[ "$(MAKECMDGOALS)" != "show-config" ] && \
-		[ "$(MAKECMDGOALS)" != "list-patches" ] && \
-		[ "$(MAKECMDGOALS)" != "list-dts" ]; then \
-		$(MAKE) build_init; \
-		$(KERNEL_MAKE) $(MAKECMDGOALS); \
+	@if [ "$(MAKECMDGOALS)" != "_build_init" ] && \
+		[ "$(MAKECMDGOALS)" != "help" ]; then \
+		$(MAKE) _build_init; \
+		flock -n .kernel_build.lock -c '$(KERNEL_MAKE) $(filter-out _build_init,$(MAKECMDGOALS))' || exit 0 ; \
 	fi
-
-all: build_init
 
 # ============================================================================
 # 构建流程
 # ============================================================================
 
 # 构建初始化总入口
-build_init: configuring
-	@echo ""
-	@echo "==> ✓ Build initialization complete!"
-	@echo "    Source:  $(SRC_DIR)"
-	@echo "    Config:  $(TARGET_DEFCONFIG)"
-	@echo ""
-	@echo "    Next steps:"
-	@echo "      make menuconfig  - Configure kernel options"
-	@echo "      make -j$$(nproc)      - Build kernel"
-	@echo "      make modules     - Build modules"
+_build_init: Patching Extracting
 
 # 构建流程依赖链
-configuring: patching $(CHECK_CONFIG_STAMP)
 
-patching: extracting $(CHECK_PATCH_STAMP)
+Patching: $(BUILD_DIR)/.stamp_patching $(BUILD_DIR)/.stamp_dtsing $(BUILD_DIR)/.stamp_config
 
-extracting: $(CHECK_BUILD_STAMP) $(CHECK_DTS_STAMP)
-
-# ============================================================================
-# 构建步骤实现
-# ============================================================================
-
-# 步骤 1: 下载和解压 Linux 源码
-$(CHECK_BUILD_STAMP):
-	@echo "==> [1/4] Extracting Linux source..."
-	@mkdir -p $(BUILD_DIR)
-	@$(MAKE) --no-print-directory _download-kernel
-	@$(MAKE) --no-print-directory _extract-kernel
-	@$(MAKE) --no-print-directory _create-symlinks
-	@touch $@
-	@echo "    ✓ Extraction complete"
-
-# 步骤 2: 复制设备树文件
-$(CHECK_DTS_STAMP): $(CHECK_BUILD_STAMP) $(DTSS)
-	@echo "==> [2/4] Copying device tree files..."
-	@if [ -n "$(DTSS)" ]; then \
-		mkdir -p $(SRC_DIR)/arch/$(BOARD_ARCH)/boot/dts/; \
-		for dts in $(DTSS); do \
-			cp $$dts $(SRC_DIR)/arch/$(BOARD_ARCH)/boot/dts/; \
-			echo "    ✓ Copied $$(basename $$dts)"; \
-		done; \
-		echo "    Total: $(words $(DTSS)) file(s)"; \
-	else \
-		echo "    ⚠ No DTS files found in $(DTS_DIR)"; \
-	fi
-	@touch $@
-
-# 步骤 3: 应用补丁
-$(CHECK_PATCH_STAMP): $(CHECK_DTS_STAMP) $(PATCHES)
-	@echo "==> [3/4] Applying patches..."
-	@if [ -n "$(PATCHES)" ]; then \
-		patch_count=0; \
-		for patch in $(PATCHES); do \
-			patch_count=$$((patch_count + 1)); \
-			echo "    [$$patch_count/$(words $(PATCHES))] Applying $$(basename $$patch)..."; \
-			if ! patch -p1 -d $(SRC_DIR) -N -s < $$patch 2>/dev/null; then \
-				if patch -p1 -d $(SRC_DIR) --dry-run -R < $$patch >/dev/null 2>&1; then \
-					echo "    ⚠ Already applied, skipping"; \
-				else \
-					echo "    ✗ ERROR: Failed to apply $$patch"; \
-					exit 1; \
-				fi; \
-			fi; \
-		done; \
-		echo "    ✓ Applied $(words $(PATCHES)) patch(es)"; \
-	else \
-		echo "    ⚠ No patches found in $(PATCH_DIR)"; \
-	fi
-	@touch $@
-
-# 步骤 4: 生成配置文件
-$(CHECK_CONFIG_STAMP): $(CHECK_PATCH_STAMP) $(CONFIG_FILES)
-	@echo "==> [4/4] Generating kernel config..."
-	@$(MAKE) --no-print-directory _generate-defconfig
-	@touch $@
-	@echo "    ✓ Configuration complete"
+Extracting: $(BUILD_DIR)/.stamp_extract
 
 # ============================================================================
 # 内部辅助目标（不直接调用）
 # ============================================================================
 
-# 下载内核源码
-.PHONY: _download-kernel
-_download-kernel:
-	@if [ ! -f '$(DL_DIR)/$(LINUX_TAR_NAME)' ]; then \
-		echo "    Downloading Linux $(LINUX_VERSION)..."; \
-		mkdir -p $(DL_DIR); \
-		if ! wget --passive-ftp -nd -t 3 -O '$(DL_DIR)/$(LINUX_TAR_NAME)' '$(LINUX_TAR_URL)'; then \
-			echo "    ✗ Download failed"; \
-			rm -f $(DL_DIR)/$(LINUX_TAR_NAME); \
-			exit 1; \
-		fi; \
-		echo "    ✓ Download complete"; \
-	else \
-		echo "    ✓ Archive already downloaded"; \
-	fi
-	@echo "    Verifying checksum..."
-	@calculated_hash=$$(sha256sum $(DL_DIR)/$(LINUX_TAR_NAME) | awk '{print $$1}'); \
-	if [ "$$calculated_hash" != "$(LINUX_TAR_SHA)" ]; then \
-		echo "    ✗ ERROR: Checksum mismatch!"; \
-		echo "      Expected: $(LINUX_TAR_SHA)"; \
-		echo "      Got:      $$calculated_hash"; \
-		rm $(DL_DIR)/$(LINUX_TAR_NAME); \
-		exit 1; \
-	fi; \
-	echo "    ✓ Checksum verified"
+$(BUILD_DIR)/.stamp_config : $(CONFIG_FILES) $(BUILD_DIR)/.stamp_extract
+	cat $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(BASE_DEFCONFIG)	$(CONFIG_FILES) > $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(TARGET_DEFCONFIG) && touch $@
 
-# 解压内核源码
-.PHONY: _extract-kernel
-_extract-kernel:
-	@if [ ! -d '$(SRC_DIR)' ]; then \
-		echo "    Extracting source to $(SRC_DIR)..."; \
-		tar zxf $(DL_DIR)/$(LINUX_TAR_NAME) -C $(BUILD_DIR)/; \
-		echo "    ✓ Extraction complete"; \
-	else \
-		echo "    ✓ Source already extracted"; \
-	fi
+$(BUILD_DIR)/.stamp_patching : $(PATCHES) $(BUILD_DIR)/.stamp_extract
+	for p in $(PATCHES); do patch -p1 -d $(SRC_DIR) < $$p; done && touch $@
 
-# 创建符号链接
-.PHONY: _create-symlinks
-_create-symlinks:
-	@if [ ! -L 'arch' ]; then \
-		ln -sf $(SRC_DIR)/arch arch; \
-		echo "    ✓ Created symlink: arch"; \
-	fi
-	@if [ ! -L 'scripts' ]; then \
-		ln -sf $(SRC_DIR)/scripts scripts; \
-		echo "    ✓ Created symlink: scripts"; \
-	fi
-	@if [ ! -L 'include' ]; then \
-		ln -sf $(SRC_DIR)/include include; \
-		echo "    ✓ Created symlink: include"; \
-	fi
+$(BUILD_DIR)/.stamp_dtsing : $(DTSS) $(BUILD_DIR)/.stamp_extract
+	cp $(DTSS) $(SRC_DIR)/arch/$(BOARD_ARCH)/boot/dts/ && touch $@
 
-# 生成 defconfig
-.PHONY: _generate-defconfig
-_generate-defconfig:
-	@target_config=$(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(TARGET_DEFCONFIG); \
-	if [ ! -f "$$target_config" ]; then \
-		echo "    Generating $(TARGET_DEFCONFIG)..."; \
-		base_config=$(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(BASE_DEFCONFIG); \
-		if [ ! -f "$$base_config" ]; then \
-			echo "    ✗ ERROR: Base config not found: $$base_config"; \
-			echo "    Available configs:"; \
-			ls $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/*defconfig 2>/dev/null | head -5; \
-			exit 1; \
-		fi; \
-		cat $$base_config > $$target_config; \
-		echo "    ✓ Base config: $(BASE_DEFCONFIG)"; \
-		fragment_count=0; \
-		for fragment in $(CONFIG_FILES); do \
-			if [ -f "$$fragment" ]; then \
-				fragment_count=$$((fragment_count + 1)); \
-				echo "    ✓ Merging $$(basename $$fragment)"; \
-				cat $$fragment >> $$target_config; \
-			else \
-				echo "    ✗ WARNING: Fragment not found: $$fragment"; \
-			fi; \
-		done; \
-		echo "    Total fragments merged: $$fragment_count"; \
-	else \
-		echo "    ✓ Config already exists: $(TARGET_DEFCONFIG)"; \
-	fi
 
-# ============================================================================
-# 常用内核操作
-# ============================================================================
 
-# 配置内核
-menuconfig: build_init
-	@echo "==> Opening kernel configuration..."
-	@$(KERNEL_MAKE) $(TARGET_DEFCONFIG)
-	@$(KERNEL_MAKE) menuconfig
+$(BUILD_DIR)/.stamp_extract : $(LINUX_TAR)
+	mkdir -p $(BUILD_DIR)
+	tar zxf $(LINUX_TAR) -C $(BUILD_DIR) && { for d in $(SYMLINK_DIRS); do ln -sf $(SRC_DIR)/$$d $$d; done } && touch $@
+	 
 
-# 使用默认配置
-defconfig: build_init
-	@echo "==> Loading default configuration..."
-	@$(KERNEL_MAKE) $(TARGET_DEFCONFIG)
-	@echo "    ✓ Loaded $(TARGET_DEFCONFIG)"
+$(LINUX_TAR) : README.md
+	wget --passive-ftp -nd -t 3 -O '$(LINUX_TAR)' '$(LINUX_TAR_URL)' || rm -f '$(LINUX_TAR)'
 
-# 保存当前配置为 defconfig
-savedefconfig: build_init
-	@echo "==> Saving defconfig..."
-	@$(KERNEL_MAKE) savedefconfig
-	@cp $(SRC_DIR)/defconfig $(SRC_DIR)/arch/$(BOARD_ARCH)/configs/$(TARGET_DEFCONFIG)
-	@echo "    ✓ Saved to arch/$(BOARD_ARCH)/configs/$(TARGET_DEFCONFIG)"
 
-# ============================================================================
-# 信息显示
-# ============================================================================
 
-# 显示当前配置
-show-config:
-	@echo "╔════════════════════════════════════════════════════════════════╗"
-	@echo "║              Kernel Build Configuration                        ║"
-	@echo "╠════════════════════════════════════════════════════════════════╣"
-	@echo "║ Linux Version:    $(LINUX_VERSION)"
-	@echo "║ Board Name:       $(BOARD_NAME)"
-	@echo "║ Architecture:     $(BOARD_ARCH)"
-	@echo "║ Base Config:      $(BASE_DEFCONFIG)"
-	@echo "║ Target Config:    $(TARGET_DEFCONFIG)"
-	@echo "║ Source Dir:       $(SRC_DIR)"
-	@echo "║ Download Dir:     $(DL_DIR)"
-	@echo "╠════════════════════════════════════════════════════════════════╣"
-	@echo "║ Config Fragments: $(words $(CONFIG_FRAGMENTS)) file(s)"
-	@for frag in $(CONFIG_FRAGMENTS); do \
-		if [ -f "$(CONFIG_FRAGMENT_DIR)/$$frag" ]; then \
-			printf "║   ✓ %-58s║\n" "$$frag"; \
-		else \
-			printf "║   ✗ %-58s║\n" "$$frag (missing)"; \
-		fi; \
-	done
-	@echo "╠════════════════════════════════════════════════════════════════╣"
-	@echo "║ Patches:          $(words $(PATCHES)) file(s)"
+
+
+
+
+AXERA_TOOL_DIR := axerabin/tools/bin
+SIGN_SCRIPT := $(AXERA_TOOL_DIR)/imgsign/sec_boot_AX620E_sign.py
+BINARIES_DIR := $(SRC_DIR)/arch/arm64/boot
+PUB_KEY := $(AXERA_TOOL_DIR)/imgsign/public.pem
+PRIV_KEY := $(AXERA_TOOL_DIR)/imgsign/private.pem
+SIGN_PARAMS := -cap 0x54FAFE -key_bit 2048
+
+
+Packaxera: 
+	$(AXERA_TOOL_DIR)/ax_gzip -9 $(BINARIES_DIR)/Image
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image.axgzip \
+		-o $(BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+
+	$(AXERA_TOOL_DIR)/ax_gzip -9 $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb.axgzip \
+		-o $(BINARIES_DIR)/dts/axera/AX650C_emmc_arm64_k515_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+
+linux-distclean:
+	@$(KERNEL_MAKE) distclean
+
+distclean:
+	@rm -f build -rf
+	@rm -f arch
+	@rm -f scripts
+	@rm -f include
+	@rm -f .kernel_build.lock

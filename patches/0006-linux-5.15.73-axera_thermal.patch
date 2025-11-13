@@ -1,6 +1,5 @@
-diff -r -u linux-5.15.73/drivers/thermal/axera_thermal.c linux-5.15.73.tmp/drivers/thermal/axera_thermal.c
---- a/drivers/thermal/axera_thermal.c	2025-10-31 11:34:18.909591991 +0800
-+++ b/drivers/thermal/axera_thermal.c	2025-10-31 11:29:26.515833410 +0800
+--- a/drivers/thermal/axera_thermal.c.orig	2025-11-13 11:49:32.099811122 +0800
++++ b/drivers/thermal/axera_thermal.c	2025-11-13 11:52:12.890972304 +0800
 @@ -40,7 +40,8 @@
  struct axera_thermal_sensor {
  	struct thermal_zone_device *tzd;

@@ -1,6 +1,5 @@
-diff -r -u linux-5.15.73/sound/soc/codecs/es8311.c linux-5.15.73.tmp/sound/soc/codecs/es8311.c
---- a/sound/soc/codecs/es8311.c	2025-10-31 11:34:18.917592148 +0800
-+++ b/sound/soc/codecs/es8311.c	2025-10-31 11:29:19.731699799 +0800
+--- a/sound/soc/codecs/es8311.c	2025-11-13 11:49:32.115811437 +0800
++++ b/sound/soc/codecs/es8311.c	2025-11-13 11:49:46.880102297 +0800
 @@ -24,6 +24,8 @@
  #include <linux/slab.h>
  #include <linux/regmap.h>
