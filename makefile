@@ -71,7 +71,7 @@ SYMLINK_DIRS      	:= arch scripts include
 
 
 # 内核编译命令
-KERNEL_MAKE := +$(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX630C_emmc_arm64_k419 LIBC=glibc $(KERNEL_EXTRA_PARAMS)
+KERNEL_MAKE := +$(MAKE) -C $(SRC_DIR) PWD=$(PWD) PROJECT=AX650_emmc LIBC=glibc $(KERNEL_EXTRA_PARAMS)
 ifneq ($(strip $(M)),)
 	KERNEL_MAKE := $(KERNEL_MAKE) M=$(M)
 endif
@@ -80,7 +80,7 @@ endif
 # 主要目标
 # ============================================================================
 
-SIGN_EXTS := all vmlinux Image zImage bzImage uImage  modules modules_install modules_prepare config menuconfig  defconfig  oldconfig savedefconfig clean mrproper install tar-pkg rpm-pkg deb-pkg kernelrelease %_defconfig %.dtb
+SIGN_EXTS := all vmlinux Image zImage bzImage uImage  modules modules_install modules_prepare config menuconfig  defconfig  oldconfig savedefconfig clean mrproper install tar-pkg rpm-pkg deb-pkg kernelrelease %_defconfig %.dtb dtbs
 
 define SIGN_RULE
 $(1): _build_init
@@ -137,21 +137,23 @@ $(LINUX_TAR) : README.md
 
 
 AXERA_TOOL_DIR := axerabin/tools/bin
-SIGN_SCRIPT := $(AXERA_TOOL_DIR)/imgsign/sec_boot_AX620E_sign.py
+SIGN_SCRIPT := $(AXERA_TOOL_DIR)/imgsign/sec_boot_AX650_sign_v2.py
 BINARIES_DIR := $(SRC_DIR)/arch/arm64/boot
+OUT_BINARIES_DIR := $(SRC_DIR)/..
 PUB_KEY := $(AXERA_TOOL_DIR)/imgsign/public.pem
 PRIV_KEY := $(AXERA_TOOL_DIR)/imgsign/private.pem
-SIGN_PARAMS := -cap 0x54FAFE -key_bit 2048
+SIGN_PARAMS := -cap 0x6fafe -key_bit 2048
 
 
 Packaxera: 
-	$(AXERA_TOOL_DIR)/ax_gzip -9 $(BINARIES_DIR)/Image
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image.axgzip \
-		-o $(BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
-
-	$(AXERA_TOOL_DIR)/ax_gzip -9 $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb.axgzip \
-		-o $(BINARIES_DIR)/dts/axera/AX650C_emmc_arm64_k515_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image \
+		-o $(OUT_BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	cp $(OUT_BINARIES_DIR)/boot_signed.bin $(OUT_BINARIES_DIR)/recovery_signed.bin
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb \
+		-o $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
+	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb \
+		-o $(OUT_BINARIES_DIR)/AX650_emmc_dual_pcie_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
 
 linux-distclean:
 	@$(KERNEL_MAKE) distclean
