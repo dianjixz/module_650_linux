@@ -42,10 +42,10 @@ index 639e01a4d..195a018fb 100644
 +subdir-y += axera
 diff --git a/arch/arm64/boot/dts/axera/AX650.dtsi b/arch/arm64/boot/dts/axera/AX650.dtsi
 new file mode 100644
-index 000000000..10f771d48
+index 000000000..c2691eab3
 --- /dev/null
 +++ b/arch/arm64/boot/dts/axera/AX650.dtsi
-@@ -0,0 +1,2764 @@
+@@ -0,0 +1,2780 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * dts file for Axera Ax650x SoC
@@ -614,6 +614,22 @@ index 000000000..10f771d48
 +			clocks = <&comm_ck AX650X_PCLK_WDT0>,
 +				 <&comm_ck AX650X_CLK_WDT0>;
 +			clock-names = "wdt-pclk", "wdt-clk";
++			clock-frequency = <24000000>;
++			keep-alive = <24000000 175>;
++			status = "disabled";
++		};
++
++		wdt4: watchdog@4e0e000 {
++			compatible = "axera,ax-wdt";
++			reg = <0x0 0x4e0e000 0x0 0x100>,
++				<0x0 0x4200000 0x0 0x100>;
++			interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&comm_ck AX650X_PCLK_WDT4>,
++				<&comm_ck AX650X_CLK_WDT4>;
++			clock-names = "wdt-pclk", "wdt-clk";
++			resets = <&comm_reset_ext 17 0x68 17 0x6c>;
++			reset-names = "arst";
++			abort-cfg = <0x4C 8 9>;
 +			clock-frequency = <24000000>;
 +			keep-alive = <24000000 175>;
 +			status = "disabled";
@@ -3826,10 +3842,10 @@ index 000000000..628b35e6d
 +};
 diff --git a/arch/arm64/boot/dts/axera/AX650_emmc.dts b/arch/arm64/boot/dts/axera/AX650_emmc.dts
 new file mode 100644
-index 000000000..6bbb31842
+index 000000000..797a0c1ca
 --- /dev/null
 +++ b/arch/arm64/boot/dts/axera/AX650_emmc.dts
-@@ -0,0 +1,1274 @@
+@@ -0,0 +1,1278 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * dts file for Axera EVB Development Board
@@ -5077,9 +5093,13 @@ index 000000000..6bbb31842
 +};
 +
 +&wdt0 {
++	for-user;
 +	status = "okay";
 +};
 +
++&wdt4 {
++	status = "okay";
++};
 +
 +&ive {
 +	status = "okay";
@@ -83814,10 +83834,10 @@ index 000000000..cb0ddcaba
 +obj-$(CONFIG_AXERA_AXI_DMAC) += axera-axi-dmac-platform.o
 diff --git a/drivers/dma/axera-axi-dmac/axera-axi-dmac-platform.c b/drivers/dma/axera-axi-dmac/axera-axi-dmac-platform.c
 new file mode 100644
-index 000000000..1739c88bc
+index 000000000..7fa1e7a96
 --- /dev/null
 +++ b/drivers/dma/axera-axi-dmac/axera-axi-dmac-platform.c
-@@ -0,0 +1,1604 @@
+@@ -0,0 +1,1609 @@
 +// SPDX-License-Identifier:  GPL-2.0
 +// (C) 2017-2018 Synopsys, Inc. (www.synopsys.com)
 +
@@ -85225,7 +85245,12 @@ index 000000000..1739c88bc
 +	}
 +
 +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	chip->regs_glb = devm_ioremap_resource(chip->dev, mem);
++	if (IS_ERR_OR_NULL(mem)) {
++		dev_err(chip->dev, "platform_get_resource regs_glb\n");
++		return -EINVAL;
++	}
++
++	chip->regs_glb = devm_ioremap(chip->dev, mem->start, resource_size(mem));
 +	if (IS_ERR(chip->regs_glb)) {
 +		dev_err(chip->dev, "devm_ioremap_resource regs_glb\n");
 +		return PTR_ERR(chip->regs_glb);
@@ -89206,10 +89231,10 @@ index 000000000..72c13f247
 +};
 diff --git a/drivers/gpu/drm/axera/ax_drm_crtc.c b/drivers/gpu/drm/axera/ax_drm_crtc.c
 new file mode 100644
-index 000000000..47ffa5b6d
+index 000000000..f19cb7c9f
 --- /dev/null
 +++ b/drivers/gpu/drm/axera/ax_drm_crtc.c
-@@ -0,0 +1,893 @@
+@@ -0,0 +1,895 @@
 +/**************************************************************************************************
 + *
 + * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
@@ -89331,6 +89356,8 @@ index 000000000..47ffa5b6d
 +		pclk_adj->post_div = (pclk_adj->fvco + (rate >> 1)) / rate;
 +	else
 +		pclk_adj->post_div = (1 << pclk_adj->post_div);
++
++	pclk_adj->pre_div = (1 << pclk_adj->pre_div);
 +
 +	return ret;
 +}
@@ -91375,10 +91402,10 @@ index 000000000..21a812127
 +
 diff --git a/drivers/gpu/drm/axera/ax_drm_mipi.c b/drivers/gpu/drm/axera/ax_drm_mipi.c
 new file mode 100644
-index 000000000..9341a109e
+index 000000000..537f2d81a
 --- /dev/null
 +++ b/drivers/gpu/drm/axera/ax_drm_mipi.c
-@@ -0,0 +1,593 @@
+@@ -0,0 +1,603 @@
 +/**************************************************************************************************
 + *
 + * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
@@ -91523,10 +91550,12 @@ index 000000000..9341a109e
 +static bool ax_dsi_encoder_mode_fixup(struct drm_encoder *encoder,
 +	const struct drm_display_mode *mode, struct drm_display_mode *adj_mode)
 +{
++	adj_mode->flags &= ~(DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_NHSYNC |
++			     DRM_MODE_FLAG_PVSYNC | DRM_MODE_FLAG_NVSYNC);
++	adj_mode->flags |= (DRM_MODE_FLAG_PHSYNC | DRM_MODE_FLAG_PVSYNC);
++
 +	DRM_DEBUG_DRIVER("mode: " DRM_MODE_FMT "\n", DRM_MODE_ARG(mode));
 +	DRM_DEBUG_DRIVER("adj_mode: " DRM_MODE_FMT "\n", DRM_MODE_ARG(adj_mode));
-+
-+	adj_mode->flags &= ~(DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC);
 +
 +	return true;
 +}
@@ -91762,9 +91791,9 @@ index 000000000..9341a109e
 +	}
 +
 +	tmp = (u64)mode->clock * 1000;
-+	/* Add 25% to pll out to be higher than pixel bandwidth (burst mode only) */
++
 +	if (mode_flags & MIPI_DSI_MODE_VIDEO_BURST)
-+		tmp = tmp * 125 / 100;
++		tmp = tmp * (dsi_priv->burst_factor + 100) / 100;
 +
 +	tmp = tmp * 8 * (mode->hdisplay * bpp / 8 + 2 * LONG_PKT_OVERHEAD + 1);
 +	tmp = DIV_ROUND_UP(tmp, (mode->hdisplay * lanes));
@@ -91808,7 +91837,7 @@ index 000000000..9341a109e
 +static int ax_mipi_dsi_bind(struct device *dev, struct device *master, void *data)
 +{
 +	int ret = 0;
-+	unsigned int max_data_lanes;
++	unsigned int max_data_lanes, burst_factor;
 +	struct platform_device *pdev = to_platform_device(dev);
 +	struct drm_device *drm_dev = (struct drm_device *)data;
 +	struct ax_mipi_dsi *ax_dsi;
@@ -91831,6 +91860,14 @@ index 000000000..9341a109e
 +		max_data_lanes = 4;
 +	}
 +	dsi_priv->plat_data.max_data_lanes = max_data_lanes;
++
++	ret = of_property_read_u32(pdev->dev.of_node, "burst-factor", &burst_factor);
++	if (ret)
++		burst_factor = 25;
++
++	dsi_priv->burst_factor = burst_factor;
++
++	DRM_INFO("%pOF: burst_factor:%d\n", dev->of_node, burst_factor);
 +
 +	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 +	dsi_priv->mm_sys_base = devm_ioremap_resource(dev, res);
@@ -94205,10 +94242,10 @@ index 000000000..70a92d80f
 +#endif /* __AX_HDMI_H__ */
 diff --git a/drivers/gpu/drm/axera/ax_mipi_dsi.h b/drivers/gpu/drm/axera/ax_mipi_dsi.h
 new file mode 100644
-index 000000000..6a6de2db4
+index 000000000..d033eb160
 --- /dev/null
 +++ b/drivers/gpu/drm/axera/ax_mipi_dsi.h
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,124 @@
 +
 +#ifndef _AX_MIPI_DSI_H_
 +#define _AX_MIPI_DSI_H_
@@ -94301,6 +94338,7 @@ index 000000000..6a6de2db4
 +struct mipi_dsi_priv {
 +	u32 lanes;
 +	u32 format;
++	u32 burst_factor;
 +	unsigned long mode_flags;
 +
 +	struct pll_parameter pll_param;
@@ -95662,10 +95700,10 @@ index 000000000..f50b47ac1
 +MODULE_ALIAS("platform:" DRIVER_NAME);
 diff --git a/drivers/gpu/drm/axera/synopsys_hdmi/dw-hdmi.c b/drivers/gpu/drm/axera/synopsys_hdmi/dw-hdmi.c
 new file mode 100644
-index 000000000..dee78bf62
+index 000000000..f655520d4
 --- /dev/null
 +++ b/drivers/gpu/drm/axera/synopsys_hdmi/dw-hdmi.c
-@@ -0,0 +1,4124 @@
+@@ -0,0 +1,4122 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * DesignWare High-Definition Multimedia Interface (HDMI) driver
@@ -98396,10 +98434,8 @@ index 000000000..dee78bf62
 +
 +	if (property == hdmi->props.hdmi_mode) {
 +		hdmi->hdmi_mode = val;
-+		if (!hdmi->hdmi_mode) {
-+			hdmi->sink_is_hdmi = false;
-+			hdmi->sink_has_audio = false;
-+		}
++		hdmi->sink_is_hdmi = hdmi->hdmi_mode ? true : false;
++		hdmi->sink_has_audio = hdmi->hdmi_mode ? true : false;
 +
 +	} else if (property == hdmi->props.hdmi_out_fmt) {
 +		hdmi->hdmi_out_fmt = val;
@@ -98528,6 +98564,9 @@ index 000000000..dee78bf62
 +
 +	hdmi->hdmi_mode = 1;
 +	drm_object_attach_property(&connector->base, hdmi->props.hdmi_mode, hdmi->hdmi_mode);
++
++	hdmi->sink_is_hdmi = hdmi->hdmi_mode ? true : false;
++	hdmi->sink_has_audio = hdmi->hdmi_mode ? true : false;
 +
 +	hdmi->props.hdmi_out_fmt = drm_property_create_range(connector->dev, 0, "HDMI_OUT_FORMAT", HDMI_COLORSPACE_RGB, HDMI_COLORSPACE_RESERVED4);
 +	if (!hdmi->props.hdmi_out_fmt) {
@@ -99472,9 +99511,6 @@ index 000000000..dee78bf62
 +	hdmi->phy_mask = (u8)~(HDMI_PHY_HPD | HDMI_PHY_RX_SENSE);
 +	hdmi->mc_clkdis = 0x7f;
 +	hdmi->last_connector_result = connector_status_disconnected;
-+
-+	hdmi->sink_is_hdmi = true;
-+	hdmi->sink_has_audio = true;
 +
 +	mutex_init(&hdmi->mutex);
 +	mutex_init(&hdmi->audio_mutex);
@@ -100954,9 +100990,21 @@ index 000000000..947e9b57b
 +
 +#endif /* __DW_HDMI_H__ */
 diff --git a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
-index 56c3fd08c..c4af39b9f 100644
+index 56c3fd08c..18923bb95 100644
 --- a/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
 +++ b/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.c
+@@ -678,9 +678,9 @@ static void dw_mipi_dsi_dpi_config(struct dw_mipi_dsi *dsi,
+ 		break;
+ 	}
+ 
+-	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
++	if (mode->flags & DRM_MODE_FLAG_PVSYNC)
+ 		val |= VSYNC_ACTIVE_LOW;
+-	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
++	if (mode->flags & DRM_MODE_FLAG_PHSYNC)
+ 		val |= HSYNC_ACTIVE_LOW;
+ 
+ 	dsi_write(dsi, DSI_DPI_VCID, DPI_VCID(dsi->channel));
 @@ -717,7 +717,8 @@ static void dw_mipi_dsi_command_mode_config(struct dw_mipi_dsi *dsi)
  	 * compute high speed transmission counter timeout according
  	 * to the timeout clock division (TO_CLK_DIVISION) and byte lane...
@@ -101082,7 +101130,34 @@ index 56c3fd08c..c4af39b9f 100644
  	.attach	      = dw_mipi_dsi_bridge_attach,
  };
  
-@@ -1216,6 +1261,8 @@ __dw_mipi_dsi_probe(struct platform_device *pdev,
+@@ -1178,17 +1223,22 @@ __dw_mipi_dsi_probe(struct platform_device *pdev,
+ 	}
+ 
+ 	if (apb_rst) {
++		u32 val;
++
+ 		ret = clk_prepare_enable(dsi->pclk);
+ 		if (ret) {
+ 			dev_err(dev, "%s: Failed to enable pclk\n", __func__);
+ 			return ERR_PTR(ret);
+ 		}
+ 
+-		reset_control_assert(apb_rst);
+-		usleep_range(10, 20);
+-		reset_control_deassert(apb_rst);
++		val = dsi_read(dsi, DSI_PWR_UP);
++		if (val != POWERUP) {
++			reset_control_assert(apb_rst);
++			usleep_range(10, 20);
++			reset_control_deassert(apb_rst);
+ 
+-		clk_disable_unprepare(dsi->pclk);
++			clk_disable_unprepare(dsi->pclk);
++		}
+ 	}
+ 
+ 	dw_mipi_dsi_debugfs_init(dsi);
+@@ -1216,6 +1266,8 @@ __dw_mipi_dsi_probe(struct platform_device *pdev,
  
  static void __dw_mipi_dsi_remove(struct dw_mipi_dsi *dsi)
  {
@@ -101130,7 +101205,7 @@ index c8132050b..1eb4f5b3e 100644
  obj-$(CONFIG_DRM_PANEL_ILITEK_IL9322) += panel-ilitek-ili9322.o
 diff --git a/drivers/gpu/drm/panel/ax-panel-simple.c b/drivers/gpu/drm/panel/ax-panel-simple.c
 new file mode 100644
-index 000000000..92a1b5d94
+index 000000000..daf8b2aa5
 --- /dev/null
 +++ b/drivers/gpu/drm/panel/ax-panel-simple.c
 @@ -0,0 +1,1083 @@
@@ -101827,19 +101902,19 @@ index 000000000..92a1b5d94
 +	panel->desc = desc;
 +
 +	if (of_property_read_bool(dev->of_node, "enable-gpio")) {
-+		panel->enable_gpio = devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_LOW);
++		panel->enable_gpio = devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_HIGH);
 +		if (IS_ERR_OR_NULL(panel->enable_gpio))
 +			return -EPROBE_DEFER;
 +
-+		gpiod_direction_output(panel->enable_gpio, 0);
++		gpiod_direction_output(panel->enable_gpio, 1);
 +	}
 +
 +	if (of_property_read_bool(dev->of_node, "reset-gpio")) {
-+		panel->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
++		panel->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
 +		if (IS_ERR_OR_NULL(panel->reset_gpio))
 +			return -EPROBE_DEFER;
 +
-+		gpiod_direction_output(panel->reset_gpio, 0);
++		gpiod_direction_output(panel->reset_gpio, 1);
 +	}
 +
 +	panel->no_hpd = of_property_read_bool(dev->of_node, "no-hpd");
@@ -113513,10 +113588,10 @@ index 14004cc09..b0169d1b2 100644
  obj-$(CONFIG_MMC_SDHCI_ESDHC_IMX)	+= sdhci-esdhc-imx.o
 diff --git a/drivers/mmc/host/sdhci-ax650.c b/drivers/mmc/host/sdhci-ax650.c
 new file mode 100644
-index 000000000..5bc51d3ec
+index 000000000..c8c35944f
 --- /dev/null
 +++ b/drivers/mmc/host/sdhci-ax650.c
-@@ -0,0 +1,1000 @@
+@@ -0,0 +1,1025 @@
 +/*
 + * Copyright (C) 2020 Axera
 + *
@@ -113982,8 +114057,12 @@ index 000000000..5bc51d3ec
 +
 +	sdhci_reset(host, mask);
 +
++
 +	if (mask == SDHCI_RESET_ALL) {
 +		pr_debug("%s axera sdhci reset all\n", host->hw_name);
++
++		/* fixed bug: Before Phy reset is released, the signal io output voltage needs to be configured to 1.8V, otherwise there will be 3.3V glitches (the default is 3.3V). */
++		sdhci_writew(host, SDHCI_CTRL_VDD_180, SDHCI_HOST_CONTROL2);
 +
 +		if ((host->mmc->caps2 & MMC_CAP2_NO_SDIO) &&
 +			(host->mmc->caps2 & MMC_CAP2_NO_SD)) {
@@ -114212,11 +114291,32 @@ index 000000000..5bc51d3ec
 +
 +}
 +
++void sdhci_axera_set_power(struct sdhci_host *host, unsigned char mode, unsigned short vdd)
++{
++	u32 temp_u32;
++	if (mode == MMC_POWER_OFF) {
++		/* need to set the phy to reset state, otherwise configuring IP power off will make the pad power supply become 3.3v. */
++		/* assert reset */
++		temp_u32 = sdhci_readl(host, SDHCI_AXERA_PHY_CNFG);
++		temp_u32 &= ~BIT_MSHC_PHY_CNFG_PHY_RSTN;
++		sdhci_writel(host, temp_u32, SDHCI_AXERA_PHY_CNFG);
++	}
++
++	sdhci_set_power(host, mode, vdd);
++	if (mode == MMC_POWER_UP) {
++		//deassert reset
++		temp_u32 = sdhci_readl(host, SDHCI_AXERA_PHY_CNFG);
++		temp_u32 |= BIT_MSHC_PHY_CNFG_PHY_RSTN;
++		sdhci_writel(host, temp_u32, SDHCI_AXERA_PHY_CNFG);
++	}
++}
++
 +static const struct sdhci_ops sdhci_axera_ops = {
 +	.set_clock = sdhci_axera_set_clock,
 +	.set_bus_width = sdhci_set_bus_width,
 +	.reset = sdhci_axera_reset,
 +	.hw_reset = sdhci_axera_hw_reset,
++	.set_power = sdhci_axera_set_power,
 +	.set_uhs_signaling = sdhci_axera_set_uhs_signaling,
 +	.platform_execute_tuning = sdhci_axera_excute_tuning,
 +	.voltage_switch = sdhci_axera_voltage_switch,
@@ -265664,10 +265764,10 @@ index b6d945ea9..f916b623c 100644
  #define DMA_DEFAULT_RX_SIZE	512
 diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-axera.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-axera.c
 new file mode 100644
-index 000000000..73a27bb9c
+index 000000000..56942207e
 --- /dev/null
 +++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-axera.c
-@@ -0,0 +1,795 @@
+@@ -0,0 +1,818 @@
 +/**************************************************************************************************
 + *
 + * Copyright (c) 2019-2024 Axera Semiconductor Co., Ltd. All Rights Reserved.
@@ -266183,6 +266283,29 @@ index 000000000..73a27bb9c
 +			rc = clk_prepare_enable(rmii_rx_clk);
 +			if (rc == 0) {
 +				dev_dbg(&pdev->dev, "set rmii-rx-clk ok\n");
++			}
++		}
++
++		if (eqos->rmii_loopback_mode) {
++			int bus_id = eqos->plat->bus_id;
++			u32 value;
++			void __iomem *addr;
++			if (bus_id == EMAC0) {
++				dev_info(eqos->dev, "EMAC0 RMII LOOPBACK\n");
++				addr = ioremap(MM_RMII_LP_MODE, 4);
++				value = readl(addr);
++				value |= RMII_LP_EN;	/* RMII CLK: MAC -> PHY */
++				writel(value, addr);
++				iounmap(addr);
++			} else if (bus_id == EMAC1) {
++				dev_info(eqos->dev, "EMAC1 RMII LOOPBACK\n");
++				addr = ioremap(PP_RMII_LP_MODE, 4);
++				value = readl(addr);
++				value |= RMII_LP_EN;	/* RMII CLK: MAC -> PHY */
++				writel(value, addr);
++				iounmap(addr);
++			} else {
++				dev_err(eqos->dev, "WARNING: only support EMAC0 and EMAC1\n");
 +			}
 +		}
 +	}
@@ -303366,10 +303489,10 @@ index 1bd2d6f37..167a4f07d 100644
  obj-$(CONFIG_ACQUIRE_WDT) += acquirewdt.o
 diff --git a/drivers/watchdog/ax_wdt.c b/drivers/watchdog/ax_wdt.c
 new file mode 100644
-index 000000000..5f95b754c
+index 000000000..e184859c5
 --- /dev/null
 +++ b/drivers/watchdog/ax_wdt.c
-@@ -0,0 +1,420 @@
+@@ -0,0 +1,480 @@
 +#define pr_fmt(fmt) KBUILD_MODNAME ":%s:%d: " fmt, __func__, __LINE__
 +
 +#include <linux/bitops.h>
@@ -303413,9 +303536,14 @@ index 000000000..5f95b754c
 +
 +struct ax_wdt {
 +	void __iomem *regs;
++	void __iomem *common_sys_regs;
 +	struct clk *clk;
 +	struct clk *pclk;
 +	int irq;
++	u32 abort_cfg_offs;
++	u32 abort_en_bit;
++	u32 abort_clr_bit;
++
 +	u32 timeout;
 +	u32 udelay_time;
 +	u32 keep_alive_rate;
@@ -303490,9 +303618,10 @@ index 000000000..5f95b754c
 +static int __ax_wdt_set_timeout(struct ax_wdt *ax_wdt, unsigned long int rate,
 +				unsigned int timeout_s)
 +{
-+	unsigned int count_val = 0;
++	unsigned long long count_val = 0;
 +
-+	count_val = (timeout_s * ax_wdt->rate) >> 16;
++	count_val = timeout_s * rate;
++	count_val = count_val < AX_MAX_COUNT ? count_val >> 16 : AX_MAX_COUNT >> 16;
 +	writel(count_val, ax_wdt->regs + WDOG_TIMEOUT_COUNT_REG);
 +	writel(1, ax_wdt->regs + WDOG_TIMEOUT_COUNT_CTRL_REG);
 +	udelay(ax_wdt->udelay_time);
@@ -303506,8 +303635,8 @@ index 000000000..5f95b754c
 +{
 +	struct ax_wdt *ax_wdt = to_ax_wdt(wdd);
 +
-+	__ax_wdt_set_timeout(ax_wdt, ax_wdt->rate, timeout_s);
 +	wdd->timeout = timeout_s;
++	__ax_wdt_set_timeout(ax_wdt, ax_wdt->rate, timeout_s);
 +
 +	return 0;
 +}
@@ -303515,16 +303644,15 @@ index 000000000..5f95b754c
 +static irqreturn_t ax_wdt_interrupt(int irq, void *data)
 +{
 +	struct ax_wdt *ax_wdt = data;
++
 +	writel(1, ax_wdt->regs + WDOG_CONTROL_WDT_INTR_CLR);
 +	ax_wdt_ping(&ax_wdt->wdd);
 +	return IRQ_HANDLED;
 +}
 +
-+static void ax_wdt_arm_system_reset(struct ax_wdt *ax_wdt)
++static void ax_wdt_irq_enable(struct ax_wdt *ax_wdt)
 +{
 +	writel(WDOG_CONTROL_WDT_INTR_EN, ax_wdt->regs + WDOG_CONTROL_REG_INTR);
-+	/* Enable watchdog. */
-+	writel(WDOG_CONTROL_WDT_EN, ax_wdt->regs + WDOG_CONTROL_REG_EN);
 +}
 +
 +static int ax_wdt_enable(struct ax_wdt *ax_wdt, bool en)
@@ -303537,11 +303665,31 @@ index 000000000..5f95b754c
 +	return 0;
 +}
 +
++static int ax_wdt_abort_enable(struct ax_wdt *ax_wdt, bool en)
++{
++	u32 offs;
++
++	if (!IS_ERR(ax_wdt->common_sys_regs) && (ax_wdt->abort_cfg_offs != ~0)) {
++		if (!IS_ERR(ax_wdt->rst))
++			reset_control_assert(ax_wdt->rst);
++
++		offs = ax_wdt->abort_cfg_offs + (en ? 0x4 : 0x8);
++		writel(BIT(ax_wdt->abort_en_bit), ax_wdt->common_sys_regs + offs);
++
++		if (!IS_ERR(ax_wdt->rst))
++			reset_control_deassert(ax_wdt->rst);
++	}
++
++	return 0;
++}
++
 +static int ax_wdt_start(struct watchdog_device *wdd)
 +{
 +	struct ax_wdt *ax_wdt = to_ax_wdt(wdd);
++
++	ax_wdt_abort_enable(ax_wdt, 1);
 +	ax_wdt_set_timeout(wdd, wdd->timeout);
-+	ax_wdt_arm_system_reset(ax_wdt);
++	ax_wdt_enable(ax_wdt, 1);
 +
 +	return 0;
 +}
@@ -303637,6 +303785,7 @@ index 000000000..5f95b754c
 +	struct ax_wdt *ax_wdt;
 +	struct resource *mem;
 +	int ret;
++	bool for_user;
 +
 +	ax_wdt = devm_kzalloc(dev, sizeof(*ax_wdt), GFP_KERNEL);
 +	if (!ax_wdt) {
@@ -303650,6 +303799,24 @@ index 000000000..5f95b754c
 +		pr_err("err %ld\n", PTR_ERR(ax_wdt->regs));
 +		return PTR_ERR(ax_wdt->regs);
 +	}
++
++	ax_wdt->abort_cfg_offs = ~0;
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (!IS_ERR_OR_NULL(mem)) {
++		ax_wdt->common_sys_regs = devm_ioremap(dev, mem->start, resource_size(mem));
++		if (!IS_ERR(ax_wdt->common_sys_regs)) {
++			u32 val[3];
++
++			ret = device_property_read_u32_array(dev, "abort-cfg", val, ARRAY_SIZE(val));
++			if (!ret) {
++				ax_wdt->abort_cfg_offs = val[0];
++				ax_wdt->abort_clr_bit = val[1];
++				ax_wdt->abort_en_bit = val[2];
++			}
++		}
++	}
++
++	ax_wdt->rst = devm_reset_control_get_optional(&pdev->dev, "arst");
 +
 +	ax_wdt->pclk = devm_clk_get(dev, "wdt-pclk");
 +	if (IS_ERR(ax_wdt->pclk)) {
@@ -303701,13 +303868,6 @@ index 000000000..5f95b754c
 +	if (ret)
 +		ax_wdt->suspend_timeout = 0;
 +
-+	ax_wdt->irq = platform_get_irq(pdev, 0);
-+	if (ax_wdt->irq < 0) {
-+		ret = -EINVAL;
-+		pr_err("err %d\n", ret);
-+		goto out_disable_clk;
-+	}
-+
 +	wdd = &ax_wdt->wdd;
 +	wdd->info = &ax_wdt_ident;
 +	wdd->ops = &ax_wdt_ops;
@@ -303732,20 +303892,43 @@ index 000000000..5f95b754c
 +		goto out_disable_clk;
 +	}
 +
-+	ret = devm_request_irq(&pdev->dev, ax_wdt->irq, ax_wdt_interrupt,
-+			       IRQF_SHARED, KBUILD_MODNAME, ax_wdt);
-+	if (ret) {
++	for_user = device_property_present(dev, "for-user");
++	if (for_user)
++		ax_wdt_stop(wdd);
++
++	ax_wdt->irq = platform_get_irq(pdev, 0);
++	if (!for_user && ax_wdt->irq < 0) {
++		ret = -EINVAL;
 +		pr_err("err %d\n", ret);
-+		watchdog_unregister_device(wdd);
-+		goto out_disable_clk;
++		goto out_unregister_device;
 +	}
-+	ax_wdt_start(wdd);
-+	pr_info("done!");
++
++	if (!for_user) {
++		u32 flag;
++
++		if (!device_property_read_u32(dev, "cpu_flag", &flag))
++			irq_set_affinity(ax_wdt->irq, cpumask_of(flag));
++
++		ret = devm_request_irq(&pdev->dev, ax_wdt->irq, ax_wdt_interrupt,
++				       IRQF_SHARED, KBUILD_MODNAME, ax_wdt);
++		if (ret) {
++			pr_err("err %d\n", ret);
++			goto out_unregister_device;
++		}
++
++		ax_wdt_irq_enable(ax_wdt);
++		ax_wdt_start(wdd);
++	}
++
++	pr_info("%pOF done!", pdev->dev.of_node);
++
 +	return 0;
 +
++out_unregister_device:
++	watchdog_unregister_device(wdd);
 +out_disable_clk:
-+	pr_err("Watchdog probe fail!\n");
 +	ax_wdt_clk_disable(ax_wdt);
++	pr_err("Watchdog probe fail!\n");
 +	return ret;
 +}
 +
