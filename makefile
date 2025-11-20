@@ -135,25 +135,21 @@ $(LINUX_TAR) : README.md
 
 
 
-
+AXERA_TOOLS_PATH := $(THIS_DIR)/axerabin/tools/bin
 AXERA_TOOL_DIR := axerabin/tools/bin
-SIGN_SCRIPT := $(AXERA_TOOL_DIR)/imgsign/sec_boot_AX650_sign_v2.py
 BINARIES_DIR := $(SRC_DIR)/arch/arm64/boot
 OUT_BINARIES_DIR := $(SRC_DIR)/..
-PUB_KEY := $(AXERA_TOOL_DIR)/imgsign/public.pem
-PRIV_KEY := $(AXERA_TOOL_DIR)/imgsign/private.pem
-SIGN_PARAMS := -cap 0x6fafe -key_bit 2048
-
+include $(AXERA_TOOL_DIR)/BuildEnv.mk
 
 Packaxera: 
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/Image \
-		-o $(OUT_BINARIES_DIR)/boot_signed.bin -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/Image \
+		-o $(OUT_BINARIES_DIR)/boot_signed.bin -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
 	cp $(OUT_BINARIES_DIR)/boot_signed.bin $(OUT_BINARIES_DIR)/recovery_signed.bin
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb \
-		-o $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb \
+		-o $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
 	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
-	python3 $(SIGN_SCRIPT) -i $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb \
-		-o $(OUT_BINARIES_DIR)/AX650_emmc_dual_pcie_signed.dtb -pub $(PUB_KEY) -prv $(PRIV_KEY) $(SIGN_PARAMS)
+	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb \
+		-o $(OUT_BINARIES_DIR)/AX650_emmc_dual_pcie_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
 
 linux-distclean:
 	@$(KERNEL_MAKE) distclean
