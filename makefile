@@ -63,7 +63,7 @@ LINUX_TAR			:= $(DL_DIR)/.$(LINUX_TAR_NAME)
 
 # 收集源文件
 PATCHES             := $(sort $(wildcard $(PATCH_DIR)/*.patch))
-DTSS                := $(wildcard $(DTS_DIR)/*.dts*) $(wildcard $(DTS_DIR)/*.h)
+DTSS                := $(wildcard $(DTS_DIR)/*) 
 CONFIG_FILES        := $(wildcard $(CONFIG_DIR)/*.config)
 SYMLINK_DIRS      	:= arch scripts include
 
