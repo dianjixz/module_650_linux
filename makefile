@@ -133,14 +133,11 @@ $(LINUX_TAR) : README.md
 
 
 
-
-
 AXERA_TOOLS_PATH := $(THIS_DIR)/axerabin/tools/bin
-AXERA_TOOL_DIR := axerabin/tools/bin
+ifneq ($(wildcard $(AXERA_TOOLS_PATH)/ax650n_BuildEnv.mk),)
+include $(AXERA_TOOLS_PATH)/ax650n_BuildEnv.mk
 BINARIES_DIR := $(SRC_DIR)/arch/arm64/boot
 OUT_BINARIES_DIR := $(SRC_DIR)/..
-include $(AXERA_TOOL_DIR)/BuildEnv.mk
-
 Packaxera: 
 	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/Image \
 		-o $(OUT_BINARIES_DIR)/boot_signed.bin -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
@@ -150,6 +147,10 @@ Packaxera:
 	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
 	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb \
 		-o $(OUT_BINARIES_DIR)/AX650_emmc_dual_pcie_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
+else
+Packaxera: 
+	@echo "Axera signing tools not found. Skipping signing step."
+endif
 
 linux-distclean:
 	@$(KERNEL_MAKE) distclean

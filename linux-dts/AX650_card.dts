@@ -1,0 +1,1155 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Axera EVB Development Board
+ *
+ * Copyright (C) 2020, Axera Ltd.
+ *
+ */
+
+/dts-v1/;
+#include "AX650.dtsi"
+#include "AX650_pinctrl.dtsi"
+#include <dt-bindings/phy/jlsemi-dt-phy.h>
+/ {
+	memory@100000000 {
+		device_type = "memory";
+		reg = <0x1 0x00000000 0x4 0x00000000>;
+	};
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x00000000 0x10000000>;
+			linux,cma-default;
+		};
+		axera_memory_dump@0 {
+			compatible = "axera_memory_dump";
+			reg = <0x1 0x050f0000 0x0 0x3000>;
+			fix_addr = <0x7C8D6E02>;
+		};
+		ramoops_mem@106000000 {
+			compatible = "ramoops";
+			reg = <0x1 0x06000000 0x0 0xf0000>;
+			record-size = <0x40000>;
+			console-size = <0x80000>;
+			ftrace-size = <0x20000>;
+		};
+
+		vdsp0_reserved: vdsp0_reserved@10E000000 {
+			no-map;
+			reg = <0x1 0x0E000000 0x0 0x1000000>;
+		};
+		vdsp1_reserved: vdsp1_reserved@10F000000 {
+			no-map;
+			reg = <0x1 0x0F000000 0x0 0x1000000>;
+		};
+		ramdisk_mem@140000000 {
+			compatible = "axera, ramdisk";
+			reg = <0x1 0x40000000 0x0 0x8000000>;
+			addr = <0x1 0x40000000>;
+			size = <0x0 0x8000000>;
+			no-map;
+		};
+	};
+
+	chosen {
+		bootargs = "Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please DO NOT config this parameter. Please config BOOTARGS_EMMC/BOOTARGS_SPINOR/BOOTARGS_SPI in u-boot-2020.04/include/configs/ax650_common.h";
+	};
+
+	// usb30: dwc3@0x30c00000 {
+	// 	compatible = "snps,dwc3";
+	// 	status = "okay";
+	// };
+
+	// usb31: dwc3@0x30d00000 {
+	// 	compatible = "snps,dwc3";
+	// 	status = "okay";
+	// };
+
+	// usb32: dwc3@0x28100000 {
+	// 	compatible = "snps,dwc3";
+	// 	status = "okay";
+	// };
+
+	// aliases {
+	// 	usb0 = &usb30;
+	// 	usb1 = &usb31;
+	// 	usb2 = &usb32;
+	// };
+
+	fbcdc_config_val: fbcdc_config_val@0 {
+		regs-num = <0x62>;
+		regs-val = <0x00000020 0x00000001>,
+			   <0x00000024 0x00000001>,
+			   <0x00000000 0x00000000>,
+			   <0x00000014 0x00000000>,
+			   <0x00000048 0x0000001c>,
+			   <0x0000024c 0x00000010>,
+			   <0x0000004c 0x8000006b>,
+			   <0x00000054 0x8000006b>,
+			   <0x0000005c 0xc7b8a46b>,
+			   <0x00000064 0xc7b8a46b>,
+			   <0x0000006c 0x70000004>,
+			   <0x00000074 0xc5040f71>,
+			   <0x0000007c 0xc7148d60>,
+			   <0x00000084 0x60000000>,
+			   <0x0000008c 0x20000000>,
+			   <0x00000094 0x50000000>,
+			   <0x0000009c 0xc5a8207b>,
+			   <0x000000a4 0x40000000>,
+			   <0x000000ac 0xc7b8a46b>,
+			   <0x000000b4 0x70000004>,
+			   <0x000000bc 0xb0148d60>,
+			   <0x000000c4 0x9000124a>,
+			   <0x000000cc 0xb0148d60>,
+			   <0x000000d4 0x9000124a>,
+			   <0x000000dc 0xb0148d60>,
+			   <0x000000e4 0x9000124a>,
+			   <0x000000ec 0xb0148d60>,
+			   <0x000000f4 0x9000124a>,
+			   <0x000000fc 0xb0148d60>,
+			   <0x00000104 0x9000124a>,
+			   <0x0000010c 0xb0148d60>,
+			   <0x00000114 0x9000124a>,
+			   <0x0000011c 0xb0148d60>,
+			   <0x00000124 0x9000124a>,
+			   <0x0000012c 0x10000000>,
+			   <0x00000050 0x0625a820>,
+			   <0x00000058 0x0625a820>,
+			   <0x00000060 0x0625a820>,
+			   <0x00000068 0x0625a820>,
+			   <0x00000070 0x0e65a820>,
+			   <0x00000078 0x48d60c51>,
+			   <0x00000080 0xc5181ccb>,
+			   <0x00000088 0x10b5040f>,
+			   <0x00000090 0x00000249>,
+			   <0x00000098 0x01181cd3>,
+			   <0x000000a0 0x8a46b062>,
+			   <0x000000a8 0x0009c928>,
+			   <0x000000b0 0x0628c0e6>,
+			   <0x000000b8 0x9285a820>,
+			   <0x000000c0 0xc5181cd3>,
+			   <0x000000c8 0x16a081ee>,
+			   <0x000000d0 0xc5181cd3>,
+			   <0x000000d8 0x16a081ee>,
+			   <0x000000e0 0xc5181cd3>,
+			   <0x000000e8 0x16a081ee>,
+			   <0x000000f0 0xc5181cd3>,
+			   <0x000000f8 0x16a081ee>,
+			   <0x00000100 0xc5181cd3>,
+			   <0x00000108 0x16a081ee>,
+			   <0x00000110 0xc5181cd3>,
+			   <0x00000118 0x16a081ee>,
+			   <0x00000120 0xc5181cd3>,
+			   <0x00000128 0x16a081ee>,
+			   <0x00000130 0x00000013>,
+			   <0x00000250 0x40000000>,
+			   <0x00000258 0x40000000>,
+			   <0x00000260 0x60000000>,
+			   <0x00000268 0x60000000>,
+			   <0x00000270 0x80000029>,
+			   <0x00000278 0x80000029>,
+			   <0x00000280 0x30000000>,
+			   <0x00000288 0x90000101>,
+			   <0x00000290 0xa0002029>,
+			   <0x00000298 0xa0002029>,
+			   <0x000002a0 0xa0002029>,
+			   <0x000002a8 0xa0002029>,
+			   <0x000002b0 0xa0002029>,
+			   <0x000002b8 0xa0002029>,
+			   <0x000002c0 0xa0002029>,
+			   <0x000002c8 0xa0002029>,
+			   <0x000002d0 0x20000000>,
+			   <0x00000254 0x00018820>,
+			   <0x0000025c 0x00018820>,
+			   <0x00000264 0x0a418820>,
+			   <0x0000026c 0x0a418820>,
+			   <0x00000274 0x06239820>,
+			   <0x0000027c 0x06239820>,
+			   <0x00000284 0x00002020>,
+			   <0x0000028c 0x48311cc9>,
+			   <0x00000294 0x06239928>,
+			   <0x0000029c 0x06239928>,
+			   <0x000002a4 0x06239928>,
+			   <0x000002ac 0x06239928>,
+			   <0x000002b4 0x06239928>,
+			   <0x000002bc 0x06239928>,
+			   <0x000002c4 0x06239928>,
+			   <0x000002cc 0x06239928>,
+			   <0x000002d4 0x00000128>;
+	};
+
+	fbcdc_config_val_top: fbcdc_config_val_top@0 {
+		regs-num = <0x62>;
+		regs-val = <0x00000020 0x00000001>,
+			   <0x00000024 0x00000001>,
+			   <0x00000000 0x00000001>, /* reverse fbc bypass enable signal of top module */
+			   <0x00000014 0x00000001>, /* reverse fbdc bypass enable signal of top module */
+			   <0x00000048 0x0000001c>,
+			   <0x0000024c 0x00000010>,
+			   <0x0000004c 0x8000006b>,
+			   <0x00000054 0x8000006b>,
+			   <0x0000005c 0xc7b8a46b>,
+			   <0x00000064 0xc7b8a46b>,
+			   <0x0000006c 0x70000004>,
+			   <0x00000074 0xc5040f71>,
+			   <0x0000007c 0xc7148d60>,
+			   <0x00000084 0x60000000>,
+			   <0x0000008c 0x20000000>,
+			   <0x00000094 0x50000000>,
+			   <0x0000009c 0xc5a8207b>,
+			   <0x000000a4 0x40000000>,
+			   <0x000000ac 0xc7b8a46b>,
+			   <0x000000b4 0x70000004>,
+			   <0x000000bc 0xb0148d60>,
+			   <0x000000c4 0x9000124a>,
+			   <0x000000cc 0xb0148d60>,
+			   <0x000000d4 0x9000124a>,
+			   <0x000000dc 0xb0148d60>,
+			   <0x000000e4 0x9000124a>,
+			   <0x000000ec 0xb0148d60>,
+			   <0x000000f4 0x9000124a>,
+			   <0x000000fc 0xb0148d60>,
+			   <0x00000104 0x9000124a>,
+			   <0x0000010c 0xb0148d60>,
+			   <0x00000114 0x9000124a>,
+			   <0x0000011c 0xb0148d60>,
+			   <0x00000124 0x9000124a>,
+			   <0x0000012c 0x10000000>,
+			   <0x00000050 0x0625a820>,
+			   <0x00000058 0x0625a820>,
+			   <0x00000060 0x0625a820>,
+			   <0x00000068 0x0625a820>,
+			   <0x00000070 0x0e65a820>,
+			   <0x00000078 0x48d60c51>,
+			   <0x00000080 0xc5181ccb>,
+			   <0x00000088 0x10b5040f>,
+			   <0x00000090 0x00000249>,
+			   <0x00000098 0x01181cd3>,
+			   <0x000000a0 0x8a46b062>,
+			   <0x000000a8 0x0009c928>,
+			   <0x000000b0 0x0628c0e6>,
+			   <0x000000b8 0x9285a820>,
+			   <0x000000c0 0xc5181cd3>,
+			   <0x000000c8 0x16a081ee>,
+			   <0x000000d0 0xc5181cd3>,
+			   <0x000000d8 0x16a081ee>,
+			   <0x000000e0 0xc5181cd3>,
+			   <0x000000e8 0x16a081ee>,
+			   <0x000000f0 0xc5181cd3>,
+			   <0x000000f8 0x16a081ee>,
+			   <0x00000100 0xc5181cd3>,
+			   <0x00000108 0x16a081ee>,
+			   <0x00000110 0xc5181cd3>,
+			   <0x00000118 0x16a081ee>,
+			   <0x00000120 0xc5181cd3>,
+			   <0x00000128 0x16a081ee>,
+			   <0x00000130 0x00000013>,
+			   <0x00000250 0x40000000>,
+			   <0x00000258 0x40000000>,
+			   <0x00000260 0x60000000>,
+			   <0x00000268 0x60000000>,
+			   <0x00000270 0x80000029>,
+			   <0x00000278 0x80000029>,
+			   <0x00000280 0x30000000>,
+			   <0x00000288 0x90000101>,
+			   <0x00000290 0xa0002029>,
+			   <0x00000298 0xa0002029>,
+			   <0x000002a0 0xa0002029>,
+			   <0x000002a8 0xa0002029>,
+			   <0x000002b0 0xa0002029>,
+			   <0x000002b8 0xa0002029>,
+			   <0x000002c0 0xa0002029>,
+			   <0x000002c8 0xa0002029>,
+			   <0x000002d0 0x20000000>,
+			   <0x00000254 0x00018820>,
+			   <0x0000025c 0x00018820>,
+			   <0x00000264 0x0a418820>,
+			   <0x0000026c 0x0a418820>,
+			   <0x00000274 0x06239820>,
+			   <0x0000027c 0x06239820>,
+			   <0x00000284 0x00002020>,
+			   <0x0000028c 0x48311cc9>,
+			   <0x00000294 0x06239928>,
+			   <0x0000029c 0x06239928>,
+			   <0x000002a4 0x06239928>,
+			   <0x000002ac 0x06239928>,
+			   <0x000002b4 0x06239928>,
+			   <0x000002bc 0x06239928>,
+			   <0x000002c4 0x06239928>,
+			   <0x000002cc 0x06239928>,
+			   <0x000002d4 0x00000128>;
+	};
+
+	aliases {
+		pcie0 = &pcie0_ep;
+		pcie1 = &pcie1_rc;
+
+		// ethernet0 = &eth0;
+		// ethernet1 = &eth1;
+	};
+
+	// sound {
+	// 	status = "disabled";
+	// 	compatible = "simple-audio-card";
+	// 	simple-audio-card,name = "Axera Audio";
+	// 	simple-audio-card,widgets =
+	// 		"Microphone", "Mic Jack",
+	// 		"Headphone", "Headphone Jack";
+	// 	simple-audio-card,routing =
+	// 		"Headphone Jack", "LOUT",
+	// 		"Headphone Jack", "ROUT",
+	// 		"INPUT", "Mic Jack";
+	// 	#address-cells = <1>;
+	// 	#size-cells = <0>;
+	// 	simple-audio-card,dai-link@0 {
+	// 		format = "i2s";
+	// 		cpu {
+	// 			sound-dai = <&i2s_mst2>;
+	// 		};
+	// 		codec {
+	// 			sound-dai = <&hdmi0>;
+	// 		};
+	// 	};
+	// 	simple-audio-card,dai-link@1 {
+	// 		format = "i2s";
+	// 		cpu {
+	// 			sound-dai = <&i2s_mst3>;
+	// 		};
+	// 		codec {
+	// 			sound-dai = <&hdmi1>;
+	// 		};
+	// 	};
+	// 	simple-audio-card,dai-link@2 {
+	// 		format = "i2s";
+	// 		cpu {
+	// 			sound-dai = <&i2s_mst0>;
+	// 		};
+	// 		codec {
+	// 			sound-dai = <&es7243l>;
+	// 			system-clock-frequency = <12288000>;
+	// 		};
+	// 	};
+	// 	simple-audio-card,dai-link@3 {
+	// 		format = "i2s";
+	// 		cpu {
+	// 			sound-dai = <&i2s_mst0>;
+	// 		};
+	// 		codec {
+	// 			sound-dai = <&es8156>;
+	// 			system-clock-frequency = <12288000>;
+	// 		};
+	// 	};
+	// };
+
+	vfb0: vfb@0 {
+		status = "disabled";
+		compatible = "axera,vfb";
+		id = <0>;
+		width = <1920>;
+		height = <1080>;
+		bpp = <32>;
+		buf-num = <2>;
+	};
+
+	vfb1: vfb@1 {
+		status = "disabled";
+		compatible = "axera,vfb";
+		id = <1>;
+		width = <1920>;
+		height = <1080>;
+		bpp = <32>;
+		buf-num = <2>;
+	};
+
+	vfb2: vfb@2 {
+		status = "disabled";
+		compatible = "axera,vfb";
+		id = <2>;
+		width = <1920>;
+		height = <1080>;
+		bpp = <32>;
+		buf-num = <2>;
+	};
+
+	vfb3: vfb@3 {
+		status = "disabled";
+		compatible = "axera,vfb";
+		id = <3>;
+		width = <64>;
+		height = <64>;
+		bpp = <32>;
+		buf-num = <2>;
+		cursor;
+	};
+	axera_logctl {
+		compatible = "axera,logctl";
+		config = "/etc/ax_syslog.conf";
+		logstate = /bits/ 8 <1 1>;
+		loglevel = /bits/ 8 <4 4>;
+	};
+	// leds {
+	// 	compatible = "gpio-leds";
+	// 	led1 {
+	// 		label = "alive";
+	// 		gpios = <&port1a 14 0>;
+	// 		linux,default-trigger = "heartbeat";
+	// 		status = "okay";
+	// 	};
+	// };
+};
+
+// &emmc {
+// 	sdhci-caps-mask = <0x2 0x03200000>;
+// 	//sdhci-caps = <0x01000000>;//SDHCI_CAN_VDD_330
+// 	bus-width = <8>;
+// 	max-frequency = <200000000>;
+// 	cap-mmc-hw-reset;
+// 	cap-mmc-highspeed;
+// 	mmc-hs200-1_8v;
+// 	mmc-hs400-1_8v;
+// 	mmc-hs400-enhanced-strobe;
+// 	no-sdio;
+// 	no-sd;
+// 	non-removable;
+// 	disable-wp;
+// 	axera,phy-cnfg = <0x00CC0000>;
+// 	axera,phy-cmdpad-cnfg = <0x0449>;
+// 	axera,phy-datapad-cnfg = <0x0449>;
+// 	axera,phy-clkpad-cnfg = <0x0440>;
+// 	axera,phy-stbpad-cnfg = <0x0451>;
+// 	axera,phy-rstnpad-cnfg = <0x0449>;
+// 	axera,phy-commdl-cnfg = <0x0>;
+// 	axera,phy-sdclkdl-cnfg = <0x1>;
+// 	axera,phy-sdclkdl-dc = <0x7F>;
+// 	axera,phy-smpldl-cnfg = <0xC>;
+// 	axera,phy-atdl-cnfg = <0xC>;
+// 	status = "disabled";
+// };
+
+// &sd {
+// 	sdhci-caps-mask = <0x7 0x00200000>;
+// 	bus-width = <4>;
+// 	max-frequency = <200000000>;
+// 	cap-sd-highspeed;
+// 	sd-uhs-sdr12;
+// 	sd-uhs-sdr25;
+// 	sd-uhs-sdr50;
+// 	sd-uhs-ddr50;
+// 	sd-uhs-sdr104;
+// 	no-sdio;
+// 	no-mmc;
+// 	disable-wp;
+// 	axera,swt1v8-drv-str = <0xCC>;
+// 	axera,phy-cnfg = <0x00CD0000>;
+// 	axera,phy-cmdpad-cnfg = <0x044A>;
+// 	axera,phy-datapad-cnfg = <0x044A>;
+// 	axera,phy-clkpad-cnfg = <0x0440>;
+// 	axera,phy-stbpad-cnfg = <0x0452>;
+// 	axera,phy-rstnpad-cnfg = <0x0440>;
+// 	axera,phy-commdl-cnfg = <0x0>;
+// 	axera,phy-sdclkdl-cnfg = <0x1>;
+// 	axera,phy-sdclkdl-dc = <0x7F>;
+// 	axera,phy-smpldl-cnfg = <0xC>;
+// 	axera,phy-atdl-cnfg = <0xC>;
+// 	status = "disabled";
+// };
+
+// &sdio {
+// 	sdhci-caps-mask = <0x7 0x00200000>;
+// 	bus-width = <4>;
+// 	max-frequency = <200000000>;
+// 	cap-mmc-hw-reset;
+// 	cap-sd-highspeed;
+// 	sd-uhs-sdr25;
+// 	sd-uhs-sdr12;
+// 	sd-uhs-sdr50;
+// 	sd-uhs-sdr104;
+// 	no-1-8-v;
+// 	no-sd;
+// 	no-mmc;
+// 	disable-wp;
+// 	axera,swt1v8-drv-str = <0xCC>;
+// 	axera,phy-cnfg = <0x00CD0000>;
+// 	axera,phy-cmdpad-cnfg = <0x044A>;
+// 	axera,phy-datapad-cnfg = <0x044A>;
+// 	axera,phy-clkpad-cnfg = <0x0440>;
+// 	axera,phy-stbpad-cnfg = <0x0452>;
+// 	axera,phy-rstnpad-cnfg = <0x0440>;
+// 	axera,phy-commdl-cnfg = <0x0>;
+// 	axera,phy-sdclkdl-cnfg = <0x1>;
+// 	axera,phy-sdclkdl-dc = <0x7F>;
+// 	axera,phy-smpldl-cnfg = <0xC>;
+// 	axera,phy-atdl-cnfg = <0xC>;
+// 	status = "disabled";
+// };
+
+&ax_uart0 {
+	status = "okay";
+};
+
+&pcie0_rc {
+    status = "disabled";
+};
+
+&pcie0_ep {
+    status = "okay";
+};
+
+&pcie1_rc {
+    status = "disabled";
+};
+
+&pcie1_ep {
+    status = "disabled";
+};
+
+&sata {
+    ports-implemented = <0xf>;
+    status = "disabled";
+};
+
+&spif {
+	status = "okay";
+	/*spi_nand@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+	};*/
+	spi_flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+	};
+};
+
+// &i2s_mst0 {
+// 	status = "okay";
+// 	reg = <0x0 0x2033000 0x0 0x800>,
+// 		<0x0 0x4251A00 0x0 0x200>,
+// 		<0x0 0x4250200 0x0 0x200>;
+// 	i2s-m0-sel = <0>;
+// 	i2s-m1-sel = <0>;
+// 	i2s-s0-sel = <0>;
+// 	i2s-s1-sel = <0>;
+// 	tdm-m0-sel = <0>;
+// 	tdm-m1-sel = <0>;
+// 	tdm-s0-sel = <0>;
+// 	tdm-s1-sel = <0>;
+// 	iis0-func-sel = <0>;
+// 	iis1-func-sel = <0>;
+// 	iis2-func-sel = <0>;
+// 	iis3-func-sel = <0>;
+// };
+
+// &i2s_mst2 {
+// 	status = "okay";
+// };
+
+// &i2s_mst3 {
+// 	status = "okay";
+// };
+
+&pwm0 {
+	status = "okay";
+};
+
+&pwm1 {
+	status = "okay";
+};
+
+&pwm2 {
+	status = "okay";
+};
+
+&pwm3 {
+	status = "okay";
+};
+
+&i2c0 {
+	status = "okay";
+	#address-cells = <0x1>;
+	#size-cells = <0x0>;
+	// es7243l: es7243l@16 {
+	// 	compatible = "es7243l_MicArray_0";
+	// 	reg = <0x16>;
+	// 	#sound-dai-cells = <0>;
+	// };
+	// es8156: es8156@9 {
+	// 	compatible = "everest,es8156";
+	// 	reg = <0x9>;
+	// 	#sound-dai-cells = <0>;
+	// };
+
+	// typec: sgm7220@47 {
+	// 	compatible = "axera,sgm7220";
+	// 	reg = <0x47>;
+	// 	int-gpio = <&port4a 14 0>;
+	// 	chanel-sel = <&port4a 11 0>;
+	// 	bind-usb = "30c00000.dwc3";
+	// 	status = "okay";
+	// };
+};
+
+&soc_thm {
+	/delete-node/ trips;
+	trips {
+		threshold: trip-point@0 {
+			temperature = <80000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+		target: trip-point@1 {
+			temperature = <105000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+		soc_crit: soc-crit {
+			temperature = <120000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+
+		threshold1: trip-point@3 {
+			temperature = <40000>;   
+			hysteresis = <2500>;
+			type = "active";
+		};
+		threshold2: trip-point@4 {
+			temperature = <50000>;   
+			hysteresis = <9000>;
+			type = "active";
+		};
+		threshold3: trip-point@5 {
+			temperature = <60000>;   
+			hysteresis = <9000>;
+			type = "active";
+		};
+		threshold4: trip-point@6 {
+			temperature = <65000>;   
+			hysteresis = <4000>;
+			type = "active";
+		};
+	};
+
+	cooling-maps {
+		map0 {
+			trip = <&threshold1>;
+			cooling-device = <&i2c_fan 1 1>;
+		};
+		map1 {
+			trip = <&threshold2>;
+			cooling-device = <&i2c_fan 2 2>;
+		};
+		map2 {
+			trip = <&threshold3>;
+			cooling-device = <&i2c_fan 3 3>;
+		};
+		map3 {
+			trip = <&threshold4>;
+			cooling-device = <&i2c_fan 4 4>;
+		};
+	};
+
+};
+
+&i2c1 {
+	status = "okay";
+	#address-cells = <0x1>;
+	#size-cells = <0x0>;
+	clock-frequency = <100000>;
+    i2c_fan: fan@5c {
+        compatible = "m5stack,i2c-fan";
+        reg = <0x5c>;
+
+        /* Thermal framework需要的属性 */
+        #cooling-cells = <2>;
+		/* 温度-转速映射表
+		* 级别0:  8%速度（PWM 20）
+		* 级别1: 25%速度（PWM 64）
+		* 级别2: 50%速度（PWM 128）  
+		* 级别3: 75%速度（PWM 192）
+		* 级别4: 90%速度（PWM 230）
+		* 级别5:100%速度（PWM 255）
+		*/
+        cooling-levels = <51 102 153 204 255>;
+    };
+};
+
+&i2c2 {
+	status = "okay";
+};
+
+&i2c3 {
+	status = "okay";
+};
+
+&i2c9 {
+	status = "okay";
+	clock-frequency = <100000>;
+	i2c-sda-hold-time-ns = <2000>;
+	i2c-scl-falling-time-ns = <300>;
+	i2c-sda-falling-time-ns = <1000>;
+	#address-cells = <0x1>;
+	#size-cells = <0x0>;
+};
+
+&drm0 {
+	status = "disabled";
+};
+
+&drm1 {
+	status = "disabled";
+};
+
+&drm2 {
+	status = "disabled";
+};
+
+&vo0 {
+	status = "disabled";
+};
+
+&vo1 {
+	status = "disabled";
+};
+
+&vo2 {
+	status = "disabled";
+};
+
+&vo3 {
+	status = "disabled";
+};
+
+&crtc0 {
+	status = "disabled";
+};
+
+&crtc1 {
+	status = "disabled";
+};
+
+&crtc2 {
+	status = "disabled";
+};
+
+&bt_dpi0 {
+	bt-8bit-low;
+
+	status = "disabled";
+};
+
+&hdmi0 {
+	status = "disabled";
+};
+
+&hdmi1 {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};
+
+&bt_dpi1 {
+	bt-8bit-low;
+
+	status = "disabled";
+};
+
+&vdec {
+	status = "okay";
+};
+
+&jdec {
+	status = "okay";
+};
+
+&jenc {
+	status = "okay";
+};
+
+&venc {
+	status = "okay";
+};
+
+&vpp {
+	status = "okay";
+};
+
+&vgp {
+	status = "okay";
+};
+
+&tdp {
+	status = "okay";
+};
+
+&gdc {
+	status = "okay";
+};
+
+&fbcdc_isp {
+	regs-param = <&fbcdc_config_val>;
+	status = "okay";
+};
+
+&fbcdc_mm {
+	regs-param = <&fbcdc_config_val>;
+	status = "okay";
+};
+
+&fbcdc_top {
+	regs-param = <&fbcdc_config_val_top>;
+	status = "okay";
+};
+
+// &panel_dsi {
+// 	status = "disabled";
+// 	prepare-delay-ms = <0>;
+// 	unprepare-delay-ms = <0>;
+// 	enable-delay-ms = <0>;
+// 	disable-delay-ms = <0>;
+// 	reset-low-delay-ms = <20>;
+// 	reset-high-delay-ms = <100>;
+// #if 0
+// 	resets = <&panel_reset 7 0xd8 1>;
+// 	reset-names = "panel_rst";
+// #endif
+// 	dsi,format = <MIPI_DSI_FMT_RGB888>;
+// 	dsi,lanes = <4>;
+// 	dsi,flags = <(MIPI_DSI_MODE_VIDEO_SYNC_PULSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM)>;
+// 	panel-init-seq = [39 00 04 B9 FF 83 99
+//                           39 00 10 B1 02 04 6B 8B 01 32 33 11 11 53 01 56 73 02 02
+//                           39 00 0c B2 00 80 80 AE 05 07 5A 11 00 10 10
+//                           39 00 2d B4 00 FF 00 AC 00 9C 00 00 08 00 00 02 00 26 02 07 09 21 03 00 00 04 A4 88 00 AC 00 9C 00 00 08 00 00 02 00 24 02 07 09 00 00 04 A4 12
+//                           39 05 22 D3 00 00 00 00 00 00 00 00 32 10 05 00 05 00 00 00 00 00 00 00 00 00 00 01 00 07 07 03 00 00 00 05 40
+//                           39 05 21 D5 00 00 00 01 02 03 00 00 00 00 19 00 18 00 20 21 00 18 00 00 00 00 00 00 00 00 31 31 30 30 2F 2F
+//                           39 05 21 D6 40 40 03 02 01 00 40 40 40 40 18 40 19 40 21 20 40 18 40 40 40 40 40 40 40 40 31 31 30 30 2F 2F
+//                           39 00 11 D8 28 02 00 2A 28 02 C0 2A 00 00 00 00 00 00 00 00
+//                           15 00 02 BD 01
+//                           39 00 11 D8 00 00 00 00 00 00 00 00 28 2A 00 2A 28 02 C0 2A
+//                           15 00 02 BD 02
+//                           39 00 09 D8 28 2A 00 2A 28 02 C0 2A
+//                           15 00 02 BD 00
+//                           39 00 03 B6 8D 8D
+//                           39 00 37 E0 01 49 4F 45 87 8A 8F 84 88 8D 91 94 97 9B A1 A2 A4 AA AB B0 A2 AF AF 59 54 5E 6D 01 49 4F 45 87 8A 8F 84 88 8D 91 94 97 9B A1 A2 A4 AA AB B0 A2 AF AF 59 54 5E 6D
+//                           15 00 02 D2 33
+//                           39 00 03 B6 7D 7D
+//                           39 00 08 BF 40 41 50 09 1A 80 CD
+//                           15 00 02 CC 08
+//                           15 05 02 36 00
+//                           05 00 01 35
+//                           05 00 01 29
+//                           05 FF 01 00
+//                           05 00 01 11
+//                           05 FF 01 00];
+// 	panel-exit-seq = [05 00 01 00];
+
+// 	display-timings {
+
+// 		timing0 {
+// 			/* 1080x1920@60 */
+// 			clock-frequency = <148500000>;
+// 			hactive = <1080>;
+// 			vactive = <1920>;
+// 			hfront-porch = <20>;
+// 			hsync-len = <70>;
+// 			hback-porch = <30>;
+// 			vfront-porch = <50>;
+// 			vsync-len = <50>;
+// 			vback-porch = <42>;
+// 			hsync-active = <0>;
+// 			vsync-active = <0>;
+// 			de-active = <0>;
+// 		};
+// 	};
+// };
+
+// &panel0 {
+// 	status = "disabled";
+
+// 	display-timings {
+
+// 		timing0: timing {
+// 			/* 720x480@60 */
+// 			clock-frequency = <27000000>;
+// 			hactive = <720>;
+// 			vactive = <480>;
+// 			hfront-porch = <16>;
+// 			hsync-len = <62>;
+// 			hback-porch = <60>;
+// 			vfront-porch = <19>;
+// 			vsync-len = <6>;
+// 			vback-porch = <30>;
+// 			hsync-active = <1>;
+// 			vsync-active = <1>;
+// 			de-active = <1>;
+// 		};
+// 	};
+// };
+
+// &panel1 {
+// 	status = "disabled";
+
+// 	display-timings {
+
+// 		timing0 {
+// 			/* 720x480@60 */
+// 			clock-frequency = <27000000>;
+// 			hactive = <720>;
+// 			vactive = <480>;
+// 			hfront-porch = <19>;
+// 			hsync-len = <62>;
+// 			hback-porch = <57>;
+// 			vfront-porch = <9>;
+// 			vsync-len = <6>;
+// 			vback-porch = <30>;
+// 			hsync-active = <1>;
+// 			vsync-active = <1>;
+// 			de-active = <1>;
+// 		};
+// 		timing1 {
+// 			/* 800x480@60 */
+// 			clock-frequency = <29232000>;
+// 			hactive = <800>;
+// 			hfront-porch = <40>;
+// 			hsync-len = <48>;
+// 			hback-porch = <40>;
+// 			vactive = <480>;
+// 			vfront-porch = <13>;
+// 			vsync-len = <3>;
+// 			vback-porch = <29>;
+// 			hsync-active = <0>;
+// 			vsync-active = <0>;
+// 			de-active = <1>;
+// 		};
+// 		timing2 {
+// 			/* 720x480@60 */
+// 			clock-frequency = <27000000>;
+// 			hactive = <720>;
+// 			vactive = <480>;
+// 			hfront-porch = <19>;
+// 			hsync-len = <62>;
+// 			hback-porch = <57>;
+// 			vfront-porch = <9>;
+// 			vsync-len = <6>;
+// 			vback-porch = <30>;
+// 			hsync-active = <1>;
+// 			vsync-active = <1>;
+// 			de-active = <1>;
+// 			interlaced;
+// 		};
+// 	};
+// };
+
+&ax_perf_bm {
+       status = "okay";
+};
+
+&ddr_dfs {
+       status = "okay";
+};
+
+&hwlock {
+       status = "okay";
+};
+
+&vdsp {
+	memory-region = <&vdsp0_reserved>, <&vdsp1_reserved>;
+	status = "okay";
+};
+
+// &eth0 {
+// 	status = "disabled";
+
+// 	phy-handle = <&phy0>;
+// 	phy-mode = "rgmii";
+
+// 	mdio {
+// 		#address-cells = <1>;
+// 		#size-cells = <0>;
+// 		compatible = "snps,dwmac-mdio";
+// 		phy0: jl2xxx-phy@1 {
+// 			compatible = "ethernet-phy-id937c.4030";
+// 			jl2xxx,led-enable = <JL2XXX_LED_CTRL_EN>;
+// 			jl2xxx,led-mode = <JL2XXX_CFG_LED_MODE>;
+// 			jl2xxx,led-period = <JL2XXX_GLOBAL_PERIOD_MS>;
+// 			jl2xxx,led-on = <JL2XXX_GLOBAL_ON_MS>;
+// 			jl2xxx,led-polarity = <JL2XXX_LED_POLARITY>;
+// 			jl2xxx,patch-enable = <JL2XXX_PATCH_CTRL_EN>;
+// 			jl2xxx,rgmii-enable = <JL2XXX_RGMII_CTRL_EN>;
+// 			jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
+// 			jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
+// 			jl2xxx,clk-enable = <JL2XXX_CLK_CTRL_EN>;
+// 			jl2xxx,fld-enable = <JL2XXX_FLD_CTRL_EN>;
+// 			jl2xxx,fld-delay = <JL2XXX_FLD_DELAY>;
+// 			jl2xxx,wol-enable = <JL2XXX_WOL_CTRL_EN>;
+// 			jl2xxx,interrupt-enable = <JL2XXX_INTR_CTRL_EN>;
+// 			jl2xxx,downshift-enable = <JL2XXX_DSFT_CTRL_EN>;
+// 			jl2xxx,downshift-count = <JL2XXX_DSFT_AN_CNT>;
+// 			jl2xxx,work_mode-enable = <JL2XXX_WORK_MODE_CTRL_EN>;
+// 			jl2xxx,work_mode-mode = <JL2XXX_WOEK_MODE_MODE>;
+// 			jl2xxx,lpbk-enable = <JL2XXX_LPBK_CTRL_EN>;
+// 			jl2xxx,lpbk-mode = <JL2XXX_LPBK_MODE>;
+// 			jl2xxx,slew_rate-enable = <JL2XXX_SLEW_RATE_CTRL_EN>;
+// 			jl2xxx,rxc_out-enable = <JL2XXX_RXC_OUT_CTRL_EN>;
+// 			reg = <1>;
+// 		};
+// 	};
+// };
+
+// &eth1 {
+// 	status = "disabled";
+
+// 	phy-handle = <&phy1>;
+// 	phy-mode = "rgmii";
+
+// 	mdio {
+// 		#address-cells = <1>;
+// 		#size-cells = <0>;
+// 		compatible = "snps,dwmac-mdio";
+// 		phy1: jl2xxx-phy@1 {
+// 			compatible = "ethernet-phy-id937c.4030";
+// 			jl2xxx,led-enable = <JL2XXX_LED_CTRL_EN>;
+// 			jl2xxx,led-mode = <JL2XXX_CFG_LED_MODE>;
+// 			jl2xxx,led-period = <JL2XXX_GLOBAL_PERIOD_MS>;
+// 			jl2xxx,led-on = <JL2XXX_GLOBAL_ON_MS>;
+// 			jl2xxx,led-polarity = <JL2XXX_LED_POLARITY>;
+// 			jl2xxx,patch-enable = <JL2XXX_PATCH_CTRL_EN>;
+// 			jl2xxx,rgmii-enable = <JL2XXX_RGMII_CTRL_EN>;
+// 			jl2xxx,rgmii-tx-delay = <JL2XXX_RGMII_TX_DLY_2NS>;
+// 			jl2xxx,rgmii-rx-delay = <JL2XXX_RGMII_RX_DLY_2NS>;
+// 			jl2xxx,clk-enable = <JL2XXX_CLK_CTRL_EN>;
+// 			jl2xxx,fld-enable = <JL2XXX_FLD_CTRL_EN>;
+// 			jl2xxx,fld-delay = <JL2XXX_FLD_DELAY>;
+// 			jl2xxx,wol-enable = <JL2XXX_WOL_CTRL_EN>;
+// 			jl2xxx,interrupt-enable = <JL2XXX_INTR_CTRL_EN>;
+// 			jl2xxx,downshift-enable = <JL2XXX_DSFT_CTRL_EN>;
+// 			jl2xxx,downshift-count = <JL2XXX_DSFT_AN_CNT>;
+// 			jl2xxx,work_mode-enable = <JL2XXX_WORK_MODE_CTRL_EN>;
+// 			jl2xxx,work_mode-mode = <JL2XXX_WOEK_MODE_MODE>;
+// 			jl2xxx,lpbk-enable = <JL2XXX_LPBK_CTRL_EN>;
+// 			jl2xxx,lpbk-mode = <JL2XXX_LPBK_MODE>;
+// 			jl2xxx,slew_rate-enable = <JL2XXX_SLEW_RATE_CTRL_EN>;
+// 			jl2xxx,rxc_out-enable = <JL2XXX_RXC_OUT_CTRL_EN>;
+// 			reg = <1>;
+// 		};
+// 	};
+// };
+
+&dmac {
+	status = "okay";
+};
+
+&dmaxor {
+	status = "okay";
+};
+
+&dmaxor_dev {
+	status = "okay";
+};
+
+&dmadim {
+	status = "okay";
+};
+
+&wdt0 {
+	status = "okay";
+};
+
+&axera_rtc_pwr {
+        status = "okay";
+};
+
+&ive {
+	status = "okay";
+};
+
+&timer2 {
+	status = "disabled";
+};
+
+&timer3 {
+	status = "disabled";
+};
+
+&timer4 {
+	status = "disabled";
+};
+
+&timer5 {
+	status = "disabled";
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
