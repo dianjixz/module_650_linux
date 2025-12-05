@@ -347,7 +347,15 @@
 				sound-dai = <&hdmi0>;
 			};
 		};
-		simple-audio-card,dai-link@1 {
+	};
+
+	sound2 {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "Axera Hdmi Audio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		simple-audio-card,dai-link@0 {
 			format = "i2s";
 			playback-only;
 			cpu {
@@ -460,6 +468,16 @@
 		};
 	};
 
+	buttons {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio0_a22_pins>;
+		button1 {
+			label = "button1";
+			gpios = <&port0a 22 0>;
+			linux,code = <0x500>;
+		};
+	};
 };
 
 &emmc {
@@ -575,6 +593,8 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_txd_pins>, 
 				<&uart0_rxd_pins>;
+	// dmas = <&dmac 40 &dmac 41>;
+	// dma-names = "tx", "rx";
 	status = "okay";
 };
 
@@ -586,15 +606,24 @@
 	// dma-names = "tx", "rx";
 	status = "okay";
 };
-
+// &ax_uart2 {
+// 	// dmas = <&dmac 44 &dmac 45>;
+// 	// dma-names = "tx", "rx";
+// 	status = "okay";
+// };
 &ax_uart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart3_txd_pins>, 
 				<&uart3_rxd_pins>;
-	// dmas = <&dmac 42 &dmac 43>;
-	// dma-names = "tx", "rx";
+	dmas = <&dmac 46 &dmac 47>;
+	dma-names = "tx", "rx";
 	status = "okay";
 };
+// &ax_uart4 {
+// 	// dmas = <&dmac 48 &dmac 49>;
+// 	// dma-names = "tx", "rx";
+// 	status = "okay";
+// };
 
 &pcie0_rc {
 	pinctrl-names = "default";
@@ -622,7 +651,7 @@
 
 &sata {
     ports-implemented = <0xf>;
-    status = "okay";
+    status = "disabled";
 };
 
 &spif {
@@ -706,7 +735,7 @@
 		compatible = "ambarella,es8311";
 		reg = <0x18>;
 		#sound-dai-cells = <0>;
-		mute-gpio = <&port4a 11 0>;
+		// mute-gpio = <&port4a 11 0>; 
 		status = "okay";
 	};
 	bm8563: bm8563@51 {
@@ -1334,9 +1363,9 @@
 	status = "okay";
 };
 
-&axera_rtc_pwr {
-        status = "okay";
-};
+// &axera_rtc_pwr {
+//         status = "okay";
+// };
 
 &wdt0 {
 	status = "okay";
