@@ -1,0 +1,7 @@
+--- a/arch/arm64/boot/dts/Makefile	2025-12-05 09:09:44.152188620 +0800
++++ b/arch/arm64/boot/dts/Makefile	2025-12-05 09:09:46.448233444 +0800
+@@ -31,3 +31,4 @@
+ subdir-y += toshiba
+ subdir-y += xilinx
+ subdir-y += axera
++dtb-$(CONFIG_ARCH_AXERA) += m5stack-ax650-AI-Pyramid.dtb

@@ -1,0 +1,31 @@
+--- a/drivers/soc/axera/ax_hwinfo/ax_hwinfo.c	2025-12-05 12:19:05.966392594 +0800
++++ b/drivers/soc/axera/ax_hwinfo/ax_hwinfo.c	2025-12-05 12:18:53.746153981 +0800
+@@ -69,11 +69,15 @@
+ 		[AX650A_SLT] = "AX650A_SLT",
+ 		[AX650N_SLT] = "AX650N_SLT",
+ 		[AX650N_PCIE] = "AX650N_PCIE",
++		[AX650N_M5stack_4G] = "AX650N_M5stack_4G",
++		[AX650N_M5stack_8G] = "AX650N_M5stack_8G",
+ 	};
+ 
+ 	if (AX650C_CHIP == ax_get_chip_type()) {
+ 		board_name[AX650N_Demo] = "AX650C_Demo";
+ 		board_name[AX650N_PCIE] = "AX650C_PCIE";
++		board_name[AX650N_M5stack_4G] = "AX650N_M5stack_4G";
++		board_name[AX650N_M5stack_8G] = "AX650N_M5stack_8G";
+ 	}
+ 
+ 	if (id >= 0 && id < AX650_BOARD_MAX) {
+--- a/drivers/soc/axera/ax_hwinfo/ax_hwinfo.h	2025-12-05 12:19:05.966392594 +0800
++++ b/drivers/soc/axera/ax_hwinfo/ax_hwinfo.h	2025-12-05 12:17:05.172033911 +0800
+@@ -47,7 +47,9 @@
+ 	AX650A_SLT = 4,
+ 	AX650N_SLT = 5,
+ 	AX650N_PCIE = 7,
+-	AX650_BOARD_MAX = 8,
++	AX650N_M5stack_4G = 8,
++	AX650N_M5stack_8G = 11,
++	AX650_BOARD_MAX = 12,
+ } board_type_t;
+ 
+ typedef enum adp_plate_type {
