@@ -457,17 +457,6 @@
 		loglevel = /bits/ 8 <4 4>;
 	};
 
-	leds {
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio4_a11_pins>;
-		compatible = "gpio-leds";
-		led0 {
-			label = "spk_switch";
-			gpios = <&port4a 11 0>;
-			default-state = "on";
-		};
-	};
-
 	buttons {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
@@ -475,7 +464,7 @@
 		button1 {
 			label = "button1";
 			gpios = <&port0a 22 0>;
-			linux,code = <0x500>;
+			linux,code = <204>;
 		};
 	};
 };
@@ -671,6 +660,13 @@
 };
 
 &i2s_mst0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&iis0_mclk_pins>,
+				<&iis0_lrck_pins>,
+				<&iis0_sclk_pins>,
+				<&iis0_dout_pins>,
+				<&iis0_din0_pins>,
+				<&iis0_din1_pins>;
 	status = "okay";
 	reg = <0x0 0x2033000 0x0 0x800>,
 		<0x0 0x4251A00 0x0 0x200>,
@@ -735,7 +731,7 @@
 		compatible = "ambarella,es8311";
 		reg = <0x18>;
 		#sound-dai-cells = <0>;
-		// mute-gpio = <&port4a 11 0>; 
+		mute-gpio = <&port4a 11 0>; 
 		status = "okay";
 	};
 	bm8563: bm8563@51 {
