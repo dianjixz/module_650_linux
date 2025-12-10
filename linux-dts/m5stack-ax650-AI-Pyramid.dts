@@ -618,7 +618,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie0_clkreq_n_pins>,
 				<&pcie0_pewake_n_pins>,
-				<&gpio3_a9_pins>;
+				<&gpio3_a19_pins>;
     status = "okay";
 };
 

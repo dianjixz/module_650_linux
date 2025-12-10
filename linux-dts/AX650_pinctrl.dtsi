@@ -2497,6 +2497,18 @@
 	        bias-disable;
 	    };
 	};
+	gpio3_a19_pins: gpio3_a19{
+	    mux {
+	        pins = "GPIO3_A19";
+	        function = "gpio3_a19";
+	    };
+	    configs {
+	        pins = "GPIO3_A19";
+	        drive-strength = <3>;
+	        input-schmitt-enable = <0>;
+	        bias-disable;
+	    };
+	};
 	i2c0_sda_m_pins: i2c0_sda_m{
 	    mux {
 	        pins = "GPIO4_A20";
