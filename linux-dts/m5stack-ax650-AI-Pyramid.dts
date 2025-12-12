@@ -467,6 +467,82 @@
 			linux,code = <204>;
 		};
 	};
+    user_fan:user_fan {
+        compatible = "m5stack,virtual-fan";
+        /* Thermal framework需要的属性 */
+        #cooling-cells = <2>;
+		/* 温度-转速映射表
+		* 级别0:  8%速度（PWM 20）
+		* 级别1: 25%速度（PWM 64）
+		* 级别2: 50%速度（PWM 128）  
+		* 级别3: 75%速度（PWM 192）
+		* 级别4: 90%速度（PWM 230）
+		* 级别5:100%速度（PWM 255）
+		*/
+        cooling-levels = <51 102 153 204 255>;
+    };
+};
+
+&soc_thm {
+	/delete-node/ trips;
+	trips {
+		threshold: trip-point@0 {
+			temperature = <80000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+		target: trip-point@1 {
+			temperature = <105000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+		soc_crit: soc-crit {
+			temperature = <120000>;
+			hysteresis = <0>;
+			type = "passive";
+		};
+
+		threshold1: trip-point@3 {
+			temperature = <40000>;   
+			hysteresis = <2500>;
+			type = "active";
+		};
+		threshold2: trip-point@4 {
+			temperature = <50000>;   
+			hysteresis = <9000>;
+			type = "active";
+		};
+		threshold3: trip-point@5 {
+			temperature = <60000>;   
+			hysteresis = <9000>;
+			type = "active";
+		};
+		threshold4: trip-point@6 {
+			temperature = <65000>;   
+			hysteresis = <4000>;
+			type = "active";
+		};
+	};
+
+	cooling-maps {
+		map0 {
+			trip = <&threshold1>;
+			cooling-device = <&user_fan 1 1>;
+		};
+		map1 {
+			trip = <&threshold2>;
+			cooling-device = <&user_fan 2 2>;
+		};
+		map2 {
+			trip = <&threshold3>;
+			cooling-device = <&user_fan 3 3>;
+		};
+		map3 {
+			trip = <&threshold4>;
+			cooling-device = <&user_fan 4 4>;
+		};
+	};
+
 };
 
 &emmc {

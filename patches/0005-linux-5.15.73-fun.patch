@@ -1,14 +1,18 @@
-diff -r -u a/drivers/thermal/Makefile b/drivers/thermal/Makefile
---- a/drivers/thermal/Makefile	2025-10-31 11:34:18.905591912 +0800
-+++ b/drivers/thermal/Makefile	2025-10-31 11:29:26.515833410 +0800
-@@ -61,3 +61,4 @@
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index aeddc5d09..ae404720c 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -61,3 +61,5 @@ obj-$(CONFIG_AMLOGIC_THERMAL)     += amlogic_thermal.o
  obj-$(CONFIG_SPRD_THERMAL)	+= sprd_thermal.o
  obj-$(CONFIG_KHADAS_MCU_FAN_THERMAL)	+= khadas_mcu_fan.o
  obj-$(CONFIG_AXERA_THERMAL)     += axera_thermal.o
 +obj-y += i2c-fun.o
-\ 文件尾没有换行符
---- a/dev/null	2025-09-11 09:16:00.815999781 +0800
-+++ b/drivers/thermal/i2c-fun.c	2025-10-31 11:29:26.523833567 +0800
++obj-y += user-fun.o
+diff --git a/drivers/thermal/i2c-fun.c b/drivers/thermal/i2c-fun.c
+new file mode 100644
+index 000000000..bc92e5be0
+--- /dev/null
++++ b/drivers/thermal/i2c-fun.c
 @@ -0,0 +1,302 @@
 +// i2c_fan.c
 +#include <linux/module.h>
@@ -312,4 +316,228 @@ diff -r -u a/drivers/thermal/Makefile b/drivers/thermal/Makefile
 +MODULE_AUTHOR("dianjixz <dianjixz@m5stack.com>");
 +MODULE_DESCRIPTION("I2C Fan Driver with Thermal Control");
 +MODULE_LICENSE("GPL v2");
-\ 文件尾没有换行符
+\ No newline at end of file
+diff --git a/drivers/thermal/user-fun.c b/drivers/thermal/user-fun.c
+new file mode 100644
+index 000000000..3d11afc7c
+--- /dev/null
++++ b/drivers/thermal/user-fun.c
+@@ -0,0 +1,218 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/thermal.h>
++#include <linux/mutex.h>
++#include <linux/atomic.h>
++#define EVENT_BUF_LEN 64
++
++#define DRIVER_NAME        "user_fan"
++#define PWM_MIN            0
++#define PWM_MAX            100
++#define MAX_COOLING_LEVELS 16
++
++struct vfan_cdev {
++    struct thermal_cooling_device *cdev;
++    struct platform_device *pdev;
++    u8 pwm;
++    u32 *cooling_levels;
++    int num_cooling_levels;
++    unsigned long cur_state;
++
++    struct mutex lock;
++    atomic64_t event_seq;
++    char event_buf[EVENT_BUF_LEN];
++};
++
++/* 读取风扇 pwm 供用户空间使用 */
++static ssize_t fan_cur_pwm_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++    struct vfan_cdev *data = dev_get_drvdata(dev);
++    return sprintf(buf, "%u\n", data->pwm);
++}
++static DEVICE_ATTR_RO(fan_cur_pwm);
++static ssize_t fan_pwm_event_show(struct device *dev,
++                                  struct device_attribute *attr, char *buf)
++{
++    struct vfan_cdev *data = dev_get_drvdata(dev);
++    ssize_t n;
++
++    mutex_lock(&data->lock);
++    n = sysfs_emit(buf, "%s", data->event_buf);
++    mutex_unlock(&data->lock);
++
++    return n;
++}
++static DEVICE_ATTR_RO(fan_pwm_event);
++static struct attribute *fan_attrs[] = {
++    &dev_attr_fan_cur_pwm.attr,
++    &dev_attr_fan_pwm_event.attr,
++    NULL,
++};
++static const struct attribute_group fan_attr_group = {
++    .attrs = fan_attrs,
++};
++
++static void cooling_level_to_pwm(struct vfan_cdev *data, unsigned long level)
++{
++    u32 pwm_raw;
++
++    if (!data->cooling_levels || level >= data->num_cooling_levels) {
++        data->pwm = PWM_MIN;
++        return;
++    }
++
++    pwm_raw = data->cooling_levels[level];
++
++    /* 将0-255范围映射到PWM_MIN-PWM_MAX */
++    if (pwm_raw == 0) {
++        data->pwm = PWM_MIN;
++        return;
++    }
++    data->pwm = PWM_MIN + ((pwm_raw * (PWM_MAX - PWM_MIN)) / 255);
++}
++
++static int vfan_get_max_state(struct thermal_cooling_device *cdev, unsigned long *state)
++{
++    struct vfan_cdev *data = cdev->devdata;
++
++    if (data->cooling_levels)
++        *state = data->num_cooling_levels - 1;
++    else
++        *state = PWM_MAX - PWM_MIN;
++
++    return 0;
++}
++
++static int vfan_get_cur_state(struct thermal_cooling_device *cdev, unsigned long *state)
++{
++    struct vfan_cdev *vf = cdev->devdata;
++    *state               = vf->cur_state;
++    return 0;
++}
++
++static int vfan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
++{
++    struct vfan_cdev *vf = cdev->devdata;
++    s64 seq;
++    
++    mutex_lock(&vf->lock);
++
++    vf->cur_state        = state;
++    if (vf->cooling_levels)
++        cooling_level_to_pwm(vf, state);
++    else
++        vf->pwm = state + PWM_MIN;
++
++    seq = atomic64_inc_return(&vf->event_seq);
++    sysfs_emit(vf->event_buf, "%lld %lu %u\n",
++               (long long)seq, vf->cur_state, vf->pwm);
++    mutex_unlock(&vf->lock);
++    sysfs_notify(&cdev->device.kobj, NULL, "fan_pwm_event");
++
++    return 0;
++}
++
++static const struct thermal_cooling_device_ops vfan_cooling_ops = {
++    .get_max_state = vfan_get_max_state,
++    .get_cur_state = vfan_get_cur_state,
++    .set_cur_state = vfan_set_cur_state,
++};
++
++/* 解析设备树配置 */
++static int vfan_parse_dt(struct vfan_cdev *data)
++{
++    struct device *dev     = &data->pdev->dev;
++    struct device_node *np = dev->of_node;
++    int ret, i;
++
++    if (!np) return 0; /* 非设备树启动 */
++
++    /* 解析cooling-levels */
++    data->num_cooling_levels = of_property_count_u32_elems(np, "cooling-levels");
++    if (data->num_cooling_levels > 0) {
++        if (data->num_cooling_levels > MAX_COOLING_LEVELS) {
++            dev_warn(dev, "Too many cooling levels, truncating to %d\n", MAX_COOLING_LEVELS);
++            data->num_cooling_levels = MAX_COOLING_LEVELS;
++        }
++
++        data->cooling_levels = devm_kzalloc(dev, sizeof(u32) * data->num_cooling_levels, GFP_KERNEL);
++        if (!data->cooling_levels) return -ENOMEM;
++
++        ret = of_property_read_u32_array(np, "cooling-levels", data->cooling_levels, data->num_cooling_levels);
++        if (ret) {
++            dev_err(dev, "Failed to parse cooling-levels: %d\n", ret);
++            return ret;
++        }
++
++        dev_info(dev, "Cooling levels: ");
++        for (i = 0; i < data->num_cooling_levels; i++) {
++            printk(KERN_CONT "%d ", data->cooling_levels[i]);
++        }
++        printk(KERN_CONT "\n");
++    }
++    return 0;
++}
++
++static int vfan_probe(struct platform_device *pdev)
++{
++    int ret;
++    struct vfan_cdev *data;
++    struct thermal_cooling_device *cdev;
++    struct device *dev = &pdev->dev;
++
++    data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++    if (!data) return -ENOMEM;
++    data->pdev = pdev;
++    platform_set_drvdata(pdev, data);
++    mutex_init(&data->lock);
++    atomic64_set(&data->event_seq, 0);
++    sysfs_emit(data->event_buf, "0 %lu %u\n", data->cur_state, data->pwm);
++    vfan_parse_dt(data);
++    cdev = thermal_of_cooling_device_register(dev->of_node, DRIVER_NAME, data, &vfan_cooling_ops);
++    if (IS_ERR(cdev)) {
++        ret = PTR_ERR(cdev);
++        dev_err(dev, "Failed to register khadas-mcu-fan as cooling device: %d\n", ret);
++        return ret;
++    }
++    data->cdev = cdev;
++    dev_set_drvdata(&cdev->device, data);
++    ret        = devm_device_add_group(&cdev->device, &fan_attr_group);
++    if (ret) {
++        dev_warn(dev, "Failed to create sysfs attributes: %d\n", ret);
++    }
++
++    dev_info(dev, "Virtual fan driver initialized successfully\n");
++    return 0;
++}
++
++static int vfan_remove(struct platform_device *pdev)
++{
++    struct vfan_cdev *vf = platform_get_drvdata(pdev);
++    if (vf && vf->cdev) thermal_cooling_device_unregister(vf->cdev);
++
++    dev_info(&pdev->dev, "Virtual fan driver removed\n");
++    return 0;
++}
++
++static const struct of_device_id vfan_of_match[] = {{
++                                                        .compatible = "m5stack,virtual-fan",
++                                                    },
++                                                    {}};
++MODULE_DEVICE_TABLE(of, vfan_of_match);
++
++static struct platform_driver vfan_driver = {
++    .probe  = vfan_probe,
++    .remove = vfan_remove,
++    .driver =
++        {
++            .name           = "virtual-fan",
++            .of_match_table = vfan_of_match,
++        },
++};
++
++module_platform_driver(vfan_driver);
++
++MODULE_AUTHOR("dianjixz <dianjixz@m5stack.com>");
++MODULE_DESCRIPTION("Virtual cooling device (virtual fan) for Linux thermal framework");
++MODULE_LICENSE("GPL v2");

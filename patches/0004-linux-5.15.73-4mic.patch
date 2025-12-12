@@ -1,5 +1,7 @@
---- a/sound/soc/codecs/es7210_config.h	2025-10-23 17:08:51.837594011 +0800
-+++ b/sound/soc/codecs/es7210_config.h	2025-10-21 17:27:20.482717605 +0800
+diff --git a/sound/soc/codecs/es7210_config.h b/sound/soc/codecs/es7210_config.h
+index 153fc5baf..336b6a585 100644
+--- a/sound/soc/codecs/es7210_config.h
++++ b/sound/soc/codecs/es7210_config.h
 @@ -68,8 +68,8 @@
  #define ES7210_NORMAL_DSPB                      11
  
@@ -11,8 +13,10 @@
  
  #define RATIO_MCLK_LRCK_64   64
  #define RATIO_MCLK_LRCK_128  128
---- a/sound/soc/codecs/es8311.c	2025-10-23 17:08:51.837594011 +0800
-+++ b/sound/soc/codecs/es8311.c	2025-10-21 17:14:19.735471116 +0800
+diff --git a/sound/soc/codecs/es8311.c b/sound/soc/codecs/es8311.c
+index 8fcd130be..35fc7dbf7 100644
+--- a/sound/soc/codecs/es8311.c
++++ b/sound/soc/codecs/es8311.c
 @@ -24,6 +24,8 @@
  #include <linux/slab.h>
  #include <linux/regmap.h>
@@ -22,7 +26,7 @@
  #include <sound/core.h>
  #include <sound/pcm.h>
  #include <sound/pcm_params.h>
-@@ -127,6 +129,7 @@
+@@ -127,6 +129,7 @@ struct sp_config {
  struct	es8311_private {
  	struct snd_soc_component *codec;
  	struct regmap *regmap;
@@ -30,7 +34,7 @@
  	u32 mclk;
  	bool sclkinv;
  	bool mclkinv;
-@@ -613,6 +616,8 @@
+@@ -613,6 +616,8 @@ static int es8311_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
  		daciface |= 0x23;
  		break;
  	default:
@@ -39,7 +43,7 @@
  		return -EINVAL;
  	}
  
-@@ -867,7 +872,11 @@
+@@ -867,7 +872,11 @@ static int es8311_set_tristate(struct snd_soc_dai *dai, int tristate)
  static int es8311_mute(struct snd_soc_dai *dai, int mute, int direction)
  {
  	struct snd_soc_component *codec = dai->component;
@@ -51,7 +55,7 @@
  	if (mute) {
  		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
  		snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x60);
-@@ -1248,6 +1257,10 @@
+@@ -1248,6 +1257,10 @@ static int es8311_i2c_probe(struct i2c_client *i2c_client,
  		dev_err(&i2c_client->dev, "regmap_init() failed: %d\n", ret);
  		return ret;
  	}
