@@ -344,9 +344,9 @@ index 000000000..3d11afc7c
 +    int num_cooling_levels;
 +    unsigned long cur_state;
 +
-+    struct mutex lock;
-+    atomic64_t event_seq;
-+    char event_buf[EVENT_BUF_LEN];
++    
++    
++    
 +};
 +
 +/* 读取风扇 pwm 供用户空间使用 */
@@ -356,22 +356,22 @@ index 000000000..3d11afc7c
 +    return sprintf(buf, "%u\n", data->pwm);
 +}
 +static DEVICE_ATTR_RO(fan_cur_pwm);
-+static ssize_t fan_pwm_event_show(struct device *dev,
-+                                  struct device_attribute *attr, char *buf)
-+{
-+    struct vfan_cdev *data = dev_get_drvdata(dev);
-+    ssize_t n;
 +
-+    mutex_lock(&data->lock);
-+    n = sysfs_emit(buf, "%s", data->event_buf);
-+    mutex_unlock(&data->lock);
 +
-+    return n;
-+}
-+static DEVICE_ATTR_RO(fan_pwm_event);
++
++
++
++
++
++
++
++
++
++
++
 +static struct attribute *fan_attrs[] = {
 +    &dev_attr_fan_cur_pwm.attr,
-+    &dev_attr_fan_pwm_event.attr,
++
 +    NULL,
 +};
 +static const struct attribute_group fan_attr_group = {
@@ -419,9 +419,9 @@ index 000000000..3d11afc7c
 +static int vfan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
 +{
 +    struct vfan_cdev *vf = cdev->devdata;
-+    s64 seq;
 +    
-+    mutex_lock(&vf->lock);
++    
++    
 +
 +    vf->cur_state        = state;
 +    if (vf->cooling_levels)
@@ -429,11 +429,11 @@ index 000000000..3d11afc7c
 +    else
 +        vf->pwm = state + PWM_MIN;
 +
-+    seq = atomic64_inc_return(&vf->event_seq);
-+    sysfs_emit(vf->event_buf, "%lld %lu %u\n",
-+               (long long)seq, vf->cur_state, vf->pwm);
-+    mutex_unlock(&vf->lock);
-+    sysfs_notify(&cdev->device.kobj, NULL, "fan_pwm_event");
++    
++    
++   
++    
++    
 +
 +    return 0;
 +}
@@ -490,9 +490,9 @@ index 000000000..3d11afc7c
 +    if (!data) return -ENOMEM;
 +    data->pdev = pdev;
 +    platform_set_drvdata(pdev, data);
-+    mutex_init(&data->lock);
-+    atomic64_set(&data->event_seq, 0);
-+    sysfs_emit(data->event_buf, "0 %lu %u\n", data->cur_state, data->pwm);
++    
++    
++    
 +    vfan_parse_dt(data);
 +    cdev = thermal_of_cooling_device_register(dev->of_node, DRIVER_NAME, data, &vfan_cooling_ops);
 +    if (IS_ERR(cdev)) {

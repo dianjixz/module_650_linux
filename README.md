@@ -11,6 +11,12 @@ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack_AX650C_emmc_arm64_defco
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j `nproc`
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack-ax650-AI-Pyramid.dtb
 make Packaxera
+# pushd build/linux-5.15.73
+# scripts/config --set-str INITRAMFS_SOURCE "你的路径/文件名"
+# popd 
+# make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+# make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j `nproc`
+# make Packaxera
 ```
 
 just Extract:
