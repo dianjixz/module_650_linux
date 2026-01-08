@@ -138,17 +138,31 @@ ifneq ($(wildcard $(AXERA_TOOLS_PATH)/ax650n_BuildEnv.mk),)
 include $(AXERA_TOOLS_PATH)/ax650n_BuildEnv.mk
 BINARIES_DIR := $(SRC_DIR)/arch/arm64/boot
 OUT_BINARIES_DIR := $(SRC_DIR)/..
-Packaxera: 
+
+Packaxera_dts: 
+	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/$(PACK_DTB).dtb \
+		-o $(OUT_BINARIES_DIR)/$(PACK_DTB)_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
+
+Packaxera_kernel: 
 	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/Image \
 		-o $(OUT_BINARIES_DIR)/boot_signed.bin -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
+
+Packaxera: 
+	$(MAKE) Packaxera_dts PACK_DTB=m5stack-ax650-AI-Pyramid
+	$(MAKE) Packaxera_dts PACK_DTB=AX650_emmc_dual_pcie
+	$(MAKE) Packaxera_kernel
 	cp $(OUT_BINARIES_DIR)/boot_signed.bin $(OUT_BINARIES_DIR)/recovery_signed.bin
-	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/m5stack-ax650-AI-Pyramid.dtb \
-		-o $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
 	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
-	python3 $(AXERA_TOOLS_SIGN_SCRIPT_650) -i $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb \
-		-o $(OUT_BINARIES_DIR)/AX650_emmc_dual_pcie_signed.dtb -pub $(AXERA_TOOLS_PUB_KEY) -prv $(AXERA_TOOLS_PRIV_KEY) $(AXERA_TOOLS_SIGN_PARAMS_650_BOOT)
+	cp $(OUT_BINARIES_DIR)/m5stack-ax650-AI-Pyramid_signed.dtb $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb
+
 else
 Packaxera: 
+	@echo "Axera signing tools not found. Skipping signing step."
+
+Packaxera_dts: 
+	@echo "Axera signing tools not found. Skipping signing step."
+
+Packaxera_kernel:
 	@echo "Axera signing tools not found. Skipping signing step."
 endif
 

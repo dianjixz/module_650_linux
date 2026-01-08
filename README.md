@@ -10,6 +10,9 @@ make distclean
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack_AX650C_emmc_arm64_defconfig
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j `nproc`
 make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack-ax650-AI-Pyramid.dtb
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- m5stack-ax650-Sbc.dtb
+make Packaxera_dts PACK_DTB=m5stack-ax650-Sbc
+
 make Packaxera
 # pushd build/linux-5.15.73
 # scripts/config --set-str INITRAMFS_SOURCE "你的路径/文件名"
