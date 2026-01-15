@@ -149,11 +149,16 @@ Packaxera_kernel:
 
 Packaxera: 
 	$(MAKE) Packaxera_dts PACK_DTB=m5stack-ax650-AI-Pyramid
+	cp $(OUT_BINARIES_DIR)/m5stack-ax650-AI-Pyramid_signed.dtb $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb
+	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
+
+	cp $(BINARIES_DIR)/dts/axera/AX650_emmc_dual_pcie.dtb $(BINARIES_DIR)/dts/AX650_emmc_dual_pcie.dtb
 	$(MAKE) Packaxera_dts PACK_DTB=AX650_emmc_dual_pcie
+	
 	$(MAKE) Packaxera_kernel
 	cp $(OUT_BINARIES_DIR)/boot_signed.bin $(OUT_BINARIES_DIR)/recovery_signed.bin
-	cp $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb $(OUT_BINARIES_DIR)/recovery_signed.dtb
-	cp $(OUT_BINARIES_DIR)/m5stack-ax650-AI-Pyramid_signed.dtb $(OUT_BINARIES_DIR)/AX650_emmc_signed.dtb
+	
+	
 
 else
 Packaxera: 
