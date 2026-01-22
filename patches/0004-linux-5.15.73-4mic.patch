@@ -66,3 +66,661 @@ index 8fcd130be..35fc7dbf7 100644
  	//dev_set_drvdata(&i2c_client->dev,  es8311);
  	es8311_data = es8311;
  	printk("Enter into %s---3\n", __func__);
+--- a/sound/soc/codecs/es7210_config.c	2026-01-22 09:21:21.255432046 +0800
++++ b/sound/soc/codecs/es7210_config.c	2026-01-22 09:18:42.584390688 +0800
+@@ -13,47 +13,81 @@
+  */
+ static int es7210_read(u8 reg, u8 *rt_value, struct i2c_client *client)
+ {
+-	int ret;
+-	u8 read_cmd[3] = { 0 };
+-	u8 cmd_len = 0;
+-
+-	read_cmd[0] = reg;
+-	cmd_len = 1;
+-
+-	if (client->adapter == NULL)
+-		printk("es7210_read client->adapter==NULL\n");
+-
+-	ret = i2c_master_send(client, read_cmd, cmd_len);
+-	if (ret != cmd_len) {
+-		printk("es7210_read error1\n");
+-		return -1;
+-	}
+-
+-	ret = i2c_master_recv(client, rt_value, 1);
+-	if (ret != 1) {
+-		printk("es7210_read error2, ret = %d.\n", ret);
+-		return -1;
+-	}
+-
+-	return 0;
++    int ret;
++    u8 read_cmd[3] = { 0 };
++    u8 cmd_len = 0;
++    int i;
++    
++    if (!client->adapter) {
++        dev_err(&client->dev, "adapter is NULL\n");
++        return -ENODEV;
++    }
++    
++    if (!rt_value) {
++        dev_err(&client->dev, "rt_value is NULL\n");
++        return -EINVAL;
++    }
++    
++    read_cmd[0] = reg;
++    cmd_len = 1;
++    
++    for (i = 0; i < 10; i++) {
++        ret = i2c_master_send(client, read_cmd, cmd_len);
++        if (ret != cmd_len) {
++            dev_warn(&client->dev, 
++                    "Send reg 0x%02x failed (%d), retry %d/10\n", 
++                    reg, ret, i + 1);
++            // usleep_range(1000, 2000);
++            continue;
++        }
++        
++        ret = i2c_master_recv(client, rt_value, 1);
++        if (ret != 1) {
++            dev_warn(&client->dev, 
++                    "Recv reg 0x%02x failed (%d), retry %d/10\n", 
++                    reg, ret, i + 1);
++            // usleep_range(1000, 2000);
++            continue;  
++        }
++        
++        return 0;
++    }
++    
++    dev_err(&client->dev, "Read reg 0x%02x failed after 10 retries\n", reg);
++    return -EIO;
+ }
+ 
+ static int es7210_write(u8 reg, unsigned char value, struct i2c_client *client)
+ {
+-	int ret = 0;
+-	u8 write_cmd[2] = { 0 };
+-
+-	write_cmd[0] = reg;
+-	write_cmd[1] = value;
+-
+-	ret = i2c_master_send(client, write_cmd, 2);
+-	if (ret != 2) {
+-		printk("es7210_write error->[REG-0x%02x,val-0x%02x]\n",
+-		       reg, value);
+-		return -1;
+-	}
+-
+-	return 0;
++    int ret;
++    u8 write_cmd[2] = { 0 };
++    int i;
++    
++    if (!client->adapter) {
++        dev_err(&client->dev, "adapter is NULL\n");
++        return -ENODEV;
++    }
++    
++    write_cmd[0] = reg;
++    write_cmd[1] = value;
++    
++    for (i = 0; i < 10; i++) {
++        ret = i2c_master_send(client, write_cmd, 2);
++        if (ret != 2) {
++            dev_warn(&client->dev, 
++                    "Write reg 0x%02x = 0x%02x failed (%d), retry %d/10\n",
++                    reg, value, ret, i + 1);
++            // usleep_range(1000, 2000);
++            continue;
++        }
++        
++        return 0;
++    }
++    
++    dev_err(&client->dev, 
++           "Write reg 0x%02x = 0x%02x failed after 10 retries\n",
++           reg, value);
++    return -EIO;
+ }
+ 
+ static int es7210_update_bits(u8 reg, u8 mask, u8 value,
+--- a/sound/soc/codecs/es8311.c	2026-01-22 15:13:40.056620053 +0800
++++ b/sound/soc/codecs/es8311.c	2026-01-22 15:11:21.549965152 +0800
+@@ -37,6 +37,116 @@
+ #ifndef CONFIG_OF
+ #define CONFIG_OF
+ #endif
++
++
++
++
++// static unsigned int p_snd_soc_component_read(struct snd_soc_component *component,
++//                                              unsigned int reg)
++// {
++//     unsigned int ret;
++//     int i;
++// 	unsigned int laster_ret = 216341;
++//     for (i = 0; i < 100; i++) {
++//         ret = snd_soc_component_read(component, reg);
++        
++//         if (ret & 0xffffff00) {
++//             dev_warn(component->dev, 
++//                     "Read reg 0x%x failed, retry %d/100\n", reg, i + 1);
++//             usleep_range(1000, 2000);
++//             continue;
++//         }
++// 		if(laster_ret != ret){
++// 			laster_ret = ret;
++// 			usleep_range(1000, 2000);
++// 			continue;
++// 		}
++//         return ret;
++//     }
++    
++//     dev_err(component->dev, "Read reg 0x%x failed after 10 retries\n", reg);
++//     return ret;
++// }
++
++// static int p_snd_soc_component_write(struct snd_soc_component *component,
++//                                      unsigned int reg, unsigned int val)
++// {
++//     int ret;
++//     int i;
++    
++//     for (i = 0; i < 100; i++) {
++//         ret = snd_soc_component_write(component, reg, val);
++        
++//         if (ret) {
++//             dev_warn(component->dev, 
++//                     "Write reg 0x%x = 0x%x failed (%d), retry %d/100\n",
++//                     reg, val, ret, i + 1);
++//             usleep_range(1000, 2000);
++//             continue;
++//         }
++// 		ret = snd_soc_component_read(component, reg);
++// 		if(ret != val)
++// 		{
++// 			usleep_range(1000, 2000);
++// 			continue;
++// 		}
++//         return 0;
++//     }
++    
++//     dev_err(component->dev, 
++//            "Write reg 0x%x = 0x%x failed after 10 retries: %d\n",
++//            reg, val, ret);
++//     return ret;
++// }
++
++// static int p_snd_soc_component_update_bits(struct snd_soc_component *component,
++//                                           unsigned int reg, 
++//                                           unsigned int mask, 
++//                                           unsigned int val)
++// {
++//     int ret;
++//     int i;
++    
++//     for (i = 0; i < 100; i++) {
++//         ret = snd_soc_component_update_bits(component, reg, mask, val);
++        
++//         if (ret < 0) {
++//             dev_warn(component->dev, 
++//                     "Update bits reg 0x%x (mask=0x%x, val=0x%x) failed (%d), retry %d/100\n",
++//                     reg, mask, val, ret, i + 1);
++//             usleep_range(1000, 2000);
++//             continue;
++//         }
++// 		ret = snd_soc_component_read(component, reg);
++// 		if(((ret & 0xffffff00) == 0) && ((ret & mask) != (val & mask)))
++// 		{
++// 			usleep_range(1000, 2000);
++// 			continue;
++// 		}
++//         return ret;
++//     }
++    
++//     dev_err(component->dev, 
++//            "Update bits reg 0x%x (mask=0x%x, val=0x%x) failed after 10 retries: %d\n",
++//            reg, mask, val, ret);
++//     return ret;
++// }
++
++
++
++
++// #define snd_soc_component_read(comp, reg) \
++//     p_snd_soc_component_read(comp, reg)
++
++// #define snd_soc_component_write(comp, reg, val) \
++//     p_snd_soc_component_write(comp, reg, val)
++
++// #define snd_soc_component_update_bits(comp, reg, mask, val) \
++//     p_snd_soc_component_update_bits(comp, reg, mask, val)
++
++
++
++
+ /*
+  * es8311 register cache
+  */
+@@ -536,9 +646,15 @@
+ static int es8311_set_dai_sysclk(struct snd_soc_dai *dai,
+ 			int clk_id, unsigned int freq, int dir)
+ {
++
+ 	struct snd_soc_component *codec = dai->component;
+ 	struct es8311_private *es8311 = snd_soc_component_get_drvdata(codec);
+ 	printk("Enter into %s()\n", __func__);
++	es8311->mclk =12288000;
++	return 0;
++
++
++
+ 	switch (freq) {
+ 	case 11289600:
+ 	case 22579200:
+@@ -560,6 +676,7 @@
+ 
+ static int es8311_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
+ {
++	return 0;
+ 	struct snd_soc_component *codec = codec_dai->component;
+ 	u8 iface = 0;
+ 	u8 adciface = 0;
+@@ -669,7 +786,7 @@
+ 			struct snd_pcm_hw_params *params,
+ 			struct snd_soc_dai *dai)
+ {
+-
++	return 0;
+ 	struct snd_soc_component *codec = dai->component;
+ 	struct es8311_private *es8311 = snd_soc_component_get_drvdata(codec);
+ 	u16 iface;
+@@ -780,6 +897,7 @@
+ static int es8311_set_bias_level(struct snd_soc_component *codec,
+ 			enum snd_soc_bias_level level)
+ {
++	return 0;
+ 	int regv;
+ 	struct es8311_private *es8311 = snd_soc_component_get_drvdata(codec);
+ 	printk("Enter into %s(), level = %d\n", __func__, level);
+@@ -834,18 +952,18 @@
+ 	case SND_SOC_BIAS_PREPARE:
+ 		break;
+ 	case SND_SOC_BIAS_STANDBY:
+-		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
+-		//snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
+-		//snd_soc_component_write(codec, ES8311_ADC_REG17, 0x00);
+-		snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0xFF);
+-		snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0xFA);
+-		snd_soc_component_write(codec, ES8311_ADC_REG15, 0x00);
+-		snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
+-		snd_soc_component_write(codec, ES8311_RESET_REG00, 0x00);
+-		snd_soc_component_write(codec, ES8311_RESET_REG00, 0x1F);
+-		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
+-		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x00);
+-		snd_soc_component_write(codec, ES8311_GP_REG45, 0x01);
++		// snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
++		// //snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
++		// //snd_soc_component_write(codec, ES8311_ADC_REG17, 0x00);
++		// snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0xFF);
++		// snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0xFA);
++		// snd_soc_component_write(codec, ES8311_ADC_REG15, 0x00);
++		// snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
++		// snd_soc_component_write(codec, ES8311_RESET_REG00, 0x00);
++		// snd_soc_component_write(codec, ES8311_RESET_REG00, 0x1F);
++		// snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
++		// snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x00);
++		// snd_soc_component_write(codec, ES8311_GP_REG45, 0x01);
+ 		break;
+ 	case SND_SOC_BIAS_OFF:
+ 		break;
+@@ -856,6 +974,7 @@
+ 
+ static int es8311_set_tristate(struct snd_soc_dai *dai, int tristate)
+ {
++	return 0;
+ 	struct snd_soc_component *codec = dai->component;
+ 	printk("Enter into %s(), tristate = %d\n", __func__, tristate);
+ 	if(tristate) {
+@@ -871,29 +990,32 @@
+ 
+ static int es8311_mute(struct snd_soc_dai *dai, int mute, int direction)
+ {
++
+ 	struct snd_soc_component *codec = dai->component;
+ 	struct es8311_private *es8311 = es8311_data;
+ 
+ 	printk("Enter into %s(), mute = %d\n", __func__, mute);
+ 	if (!IS_ERR_OR_NULL(es8311->mute_gpio))
+ 		gpiod_set_value(es8311->mute_gpio, mute ? 0 : 1);
+-	if (mute) {
+-		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
+-		snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x60);
+-		//snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
+-		snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
+-	}
+-	else {
+-		snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x00);
+-		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x00);
+-	}
++	// if (mute) {
++	// 	// snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
++	// 	// snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x60);
++	// 	// //snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
++	// 	// snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
++	// }
++	// else {
++	// 	snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x00);
++	// 	snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x00);
++	// }
+ 	return 0;
+ }
+ 
+-#define es8311_RATES SNDRV_PCM_RATE_8000_96000
++// #define es8311_RATES SNDRV_PCM_RATE_8000_96000
++#define es8311_RATES (SNDRV_PCM_RATE_48000)
+ 
+-#define es8311_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
+-		SNDRV_PCM_FMTBIT_S24_LE)
++// #define es8311_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE |\
++// 		SNDRV_PCM_FMTBIT_S24_LE)
++#define es8311_FORMATS SNDRV_PCM_FMTBIT_S16_LE
+ 
+ static struct snd_soc_dai_ops es8311_ops = {
+ 	.startup = es8311_pcm_startup,
+@@ -929,79 +1051,84 @@
+ 
+ static int es8311_suspend(struct snd_soc_component *codec)
+ {
+-	printk("Enter into %s()\n", __func__);
+-	//snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
+-	//snd_soc_component_write(codec, ES8311_ADC_REG17, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0xFF);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG14, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0xFA);
+-	snd_soc_component_write(codec, ES8311_ADC_REG15, 0x00);
+-	snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
+-	snd_soc_component_write(codec, ES8311_RESET_REG00, 0x00);
+-	snd_soc_component_write(codec, ES8311_RESET_REG00, 0x1F);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x00);
+-	snd_soc_component_write(codec, ES8311_GP_REG45, 0x01);
++	// 不要挂起设备
++	// printk("Enter into %s()\n", __func__);
++	// //snd_soc_component_write(codec, ES8311_DAC_REG32, 0x00);
++	// //snd_soc_component_write(codec, ES8311_ADC_REG17, 0x00);
++	// snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0xFF);
++	// snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x02);
++	// snd_soc_component_write(codec, ES8311_SYSTEM_REG14, 0x00);
++	// snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0xFA);
++	// snd_soc_component_write(codec, ES8311_ADC_REG15, 0x00);
++	// snd_soc_component_write(codec, ES8311_DAC_REG37, 0x08);
++	// snd_soc_component_write(codec, ES8311_RESET_REG00, 0x00);
++	// snd_soc_component_write(codec, ES8311_RESET_REG00, 0x1F);
++	// snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
++	// snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x00);
++	// snd_soc_component_write(codec, ES8311_GP_REG45, 0x01);
+ 	return 0;
+ }
+ 
+ static int es8311_resume(struct snd_soc_component *codec)
+ {
+-	struct es8311_private *es8311 = snd_soc_component_get_drvdata(codec);
+-	printk("Enter into %s()\n", __func__);
+-	snd_soc_component_write(codec, ES8311_GP_REG45, 0x00);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG02, 0x00);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG03, 0x10);
+-	snd_soc_component_write(codec, ES8311_ADC_REG16, 0x24);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG04, 0x10);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG05, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0B, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0C, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG10, 0x1F);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG11, 0x7F);
+-	snd_soc_component_write(codec, ES8311_RESET_REG00, 0x80);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0x01);
+-	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x3F);
+-	if(es8311->mclkinv == true) {
+-		snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG01,
+-				0x40, 0x40);
+-	}
+-	else {
+-		snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG01,
+-				0x40, 0x00);
+-	}
+-	if(es8311->sclkinv == true) {
+-		snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG06,
+-				0x20, 0x20);
+-	}
+-	else {
+-		snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG06,
+-				0x20, 0x00);
+-	}
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG14, 0x1A);
+-	if(es8311->dmic_enable == true) {
+-		snd_soc_component_update_bits(codec, ES8311_SYSTEM_REG14,
+-				0x40, 0x40);
+-	}
+-	else {
+-		snd_soc_component_update_bits(codec, ES8311_SYSTEM_REG14,
+-				0x40, 0x00);
++	return 0;
++	static int init_status = 0;
++	if(init_status == 0){
++		struct es8311_private *es8311 = snd_soc_component_get_drvdata(codec);
++		printk("Enter into %s()\n", __func__);
++		snd_soc_component_write(codec, ES8311_GP_REG45, 0x00);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG02, 0x00);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG03, 0x10);
++		snd_soc_component_write(codec, ES8311_ADC_REG16, 0x24);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG04, 0x10);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG05, 0x00);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG0B, 0x00);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG0C, 0x00);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG10, 0x1F);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG11, 0x7F);
++		snd_soc_component_write(codec, ES8311_RESET_REG00, 0x80);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG0D, 0x01);
++		snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x3F);
++		if(es8311->mclkinv == true) {
++			snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG01,
++					0x40, 0x40);
++		}
++		else {
++			snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG01,
++					0x40, 0x00);
++		}
++		if(es8311->sclkinv == true) {
++			snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG06,
++					0x20, 0x20);
++		}
++		else {
++			snd_soc_component_update_bits(codec, ES8311_CLK_MANAGER_REG06,
++					0x20, 0x00);
++		}
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG14, 0x1A);
++		if(es8311->dmic_enable == true) {
++			snd_soc_component_update_bits(codec, ES8311_SYSTEM_REG14,
++					0x40, 0x40);
++		}
++		else {
++			snd_soc_component_update_bits(codec, ES8311_SYSTEM_REG14,
++					0x40, 0x00);
++		}
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x00);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG13, 0x10);
++		snd_soc_component_write(codec, ES8311_SDPIN_REG09, 0x00);
++		snd_soc_component_write(codec, ES8311_SDPOUT_REG0A, 0x00);
++		snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0x02);
++		snd_soc_component_write(codec, ES8311_ADC_REG15, 0x40);
++		snd_soc_component_write(codec, ES8311_ADC_REG1B, 0x0A);
++		snd_soc_component_write(codec, ES8311_ADC_REG1C, 0x6A);
++		snd_soc_component_write(codec, ES8311_DAC_REG37, 0x48);
++		//snd_soc_component_write(codec, ES8311_GPIO_REG44, 0x08);
++		//snd_soc_component_write(codec, ES8311_ADC_REG17, 0xBF);
++		//snd_soc_component_write(codec, ES8311_DAC_REG32, 0xBF);
++		init_status = 1;
+ 	}
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG13, 0x10);
+-	snd_soc_component_write(codec, ES8311_SDPIN_REG09, 0x00);
+-	snd_soc_component_write(codec, ES8311_SDPOUT_REG0A, 0x00);
+-	snd_soc_component_write(codec, ES8311_SYSTEM_REG0E, 0x02);
+-	snd_soc_component_write(codec, ES8311_ADC_REG15, 0x40);
+-	snd_soc_component_write(codec, ES8311_ADC_REG1B, 0x0A);
+-	snd_soc_component_write(codec, ES8311_ADC_REG1C, 0x6A);
+-	snd_soc_component_write(codec, ES8311_DAC_REG37, 0x48);
+-	//snd_soc_component_write(codec, ES8311_GPIO_REG44, 0x08);
+-	//snd_soc_component_write(codec, ES8311_ADC_REG17, 0xBF);
+-	//snd_soc_component_write(codec, ES8311_DAC_REG32, 0xBF);
+-
+ 	return 0;
+ }
+ 
+@@ -1020,7 +1147,7 @@
+ 		return -ENODEV;
+ 	}
+ 	es8311_codec = codec;
+-
++	return 0;
+ 
+ 	snd_soc_component_write(codec, ES8311_GP_REG45, 0x00);
+ 	snd_soc_component_write(codec, ES8311_CLK_MANAGER_REG01, 0x30);
+@@ -1075,12 +1202,15 @@
+ 	snd_soc_component_write(codec, ES8311_DAC_REG32, 0xBF);
+ 
+ 	msleep(100);
+-	es8311_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
++	snd_soc_component_update_bits(codec, ES8311_DAC_REG31, 0x60, 0x00);
++	snd_soc_component_write(codec, ES8311_SYSTEM_REG12, 0x00);
++	//es8311_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+ 	return ret;
+ }
+ 
+ static void es8311_remove(struct snd_soc_component *codec)
+ {
++	return ;
+ 	es8311_set_bias_level(codec, SND_SOC_BIAS_OFF);
+ 
+ }
+@@ -1217,12 +1347,63 @@
+ 	return count;
+ }
+ 
++
++const uint8_t device_regs[256] = {
++    0x80, 0x3f, 0x00, 0x10, 0x10, 0x00, 0x04, 0x00, 0xff, 0x0c, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00,
++    0x1f, 0x7f, 0x00, 0x10, 0x1a, 0x40, 0x24, 0xbf, 0x00, 0x00, 0x00, 0x0a, 0x6a, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x70, 0x83, 0x11, 0x01
++};
++
++
++
++static ssize_t es8311_reset_store(struct device *dev,
++            struct device_attribute *attr,
++            const char *buf, size_t count)
++{
++    struct i2c_client *i2c_client = to_i2c_client(dev);
++    int reg;
++    int ret;
++    
++    printk("ES8311: Starting reset and register write\n");
++    for (reg = 0; reg < 256; reg++) {
++        u8 write_cmd[2] = { 0 };
++        write_cmd[0] = reg;
++        write_cmd[1] = device_regs[reg];
++        
++        ret = i2c_master_send(i2c_client, write_cmd, 2);
++        if (ret < 0) {
++            printk("ES8311: Failed to write reg 0x%02x, ret=%d\n", reg, ret);
++            return ret;
++        }
++    }
++    
++    printk("ES8311: Reset complete, all %d registers written\n", reg);
++    
++    return count;
++}
++
++
++
+ //static struct device *es8311_dev = NULL;
+ //static struct class *es8311_class = NULL;
+ static DEVICE_ATTR(es8311, 0664, es8311_show, es8311_store);
++static DEVICE_ATTR(es8311_reset, 0664, NULL, es8311_reset_store);
+ 
+ static struct attribute *es8311_debug_attrs[] = {
+ 	&dev_attr_es8311.attr,
++	&dev_attr_es8311_reset.attr,
+ 	NULL,
+ };
+ 
+@@ -1231,11 +1412,14 @@
+ 	.attrs  = es8311_debug_attrs,
+ };
+ 
++
++
+ static int es8311_i2c_probe(struct i2c_client *i2c_client,
+ 					const struct i2c_device_id *id)
+ {
+ 	struct es8311_private *es8311;
+ 	int ret = -1;
++	int reg;
+ 	printk("Enter into %s\n", __func__);
+ 	es8311 = devm_kzalloc(&i2c_client->dev,
+ 			sizeof(*es8311), GFP_KERNEL);
+@@ -1261,7 +1445,7 @@
+ 	if (!IS_ERR_OR_NULL(es8311->mute_gpio))
+ 		gpiod_direction_output(es8311->mute_gpio, 1);
+ 
+-	//dev_set_drvdata(&i2c_client->dev,  es8311);
++	// dev_set_drvdata(&i2c_client->dev,  es8311);
+ 	es8311_data = es8311;
+ 	printk("Enter into %s---3\n", __func__);
+ 	ret =  snd_soc_register_component(&i2c_client->dev,
+@@ -1279,7 +1463,15 @@
+ 	if (ret) {
+ 		pr_err("failed to create attr group\n");
+ 	}
+-
++	
++	for (reg = 0; reg < 256; reg++) 
++	{
++    	u8 write_cmd[2] = { 0 };
++		write_cmd[0] = reg;
++		write_cmd[1] = device_regs[reg];
++        i2c_master_send(i2c_client, write_cmd, 2);
++	}
++// i2c_master_send(client, write_cmd, 2);
+ 	printk("Exit %s\n", __func__);
+ 	return ret;
+ }
+@@ -1331,3 +1523,7 @@
+ MODULE_AUTHOR("David Yang <yangxiaohua@everest-semi.com>");
+ MODULE_LICENSE("GPL");
+ 
++
++// #undef snd_soc_component_read
++// #undef snd_soc_component_write
++// #undef snd_soc_component_update_bits
+\ 文件尾没有换行符

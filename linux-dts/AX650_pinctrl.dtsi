@@ -2425,6 +2425,18 @@
 	        bias-disable;
 	    };
 	};
+	gpio4_a19_pins_i2c: gpio4_a19{
+	    mux {
+	        pins = "GPIO4_A19";
+	        function = "gpio4_a19";
+	    };
+	    configs {
+	        pins = "GPIO4_A19";
+	        drive-strength = <3>;
+			drive-open-drain;
+			bias-disable;
+	    };
+	};
 	gpio4_a19_pins: gpio4_a19{
 	    mux {
 	        pins = "GPIO4_A19";
@@ -2433,8 +2445,8 @@
 	    configs {
 	        pins = "GPIO4_A19";
 	        drive-strength = <3>;
-	        input-schmitt-enable = <0>;
-	        bias-disable;
+			input-schmitt-enable = <0>;
+			bias-disable;
 	    };
 	};
 	i2c0_scl_m_pins: i2c0_scl_m{
@@ -2446,7 +2458,8 @@
 	        pins = "GPIO4_A19";
 	        drive-strength = <3>;
 	        input-schmitt-enable = <0>;
-	        bias-disable;
+	        // bias-disable;
+			bias-pull-up;
 	    };
 	};
 	uart5_ctsn_pins: uart5_ctsn{
@@ -2473,6 +2486,20 @@
 	        bias-disable;
 	    };
 	};
+	gpio4_a20_pins_i2c: gpio4_a20{
+	    mux {
+	        pins = "GPIO4_A20";
+	        function = "gpio4_a20";
+	    };
+	    configs {
+	        pins = "GPIO4_A20";
+	        drive-strength = <3>;
+			// input-schmitt-enable = <0>;
+			drive-open-drain;
+			bias-disable;
+	    };
+	};
+
 	gpio4_a20_pins: gpio4_a20{
 	    mux {
 	        pins = "GPIO4_A20";
@@ -2481,8 +2508,8 @@
 	    configs {
 	        pins = "GPIO4_A20";
 	        drive-strength = <3>;
-	        input-schmitt-enable = <0>;
-	        bias-disable;
+			input-schmitt-enable = <0>;
+			bias-disable;
 	    };
 	};
 	gpio4_a21_pins: gpio4_a21{

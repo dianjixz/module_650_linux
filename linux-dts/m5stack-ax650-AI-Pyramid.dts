@@ -297,6 +297,7 @@
 
 		ethernet0 = &eth0;
 		ethernet1 = &eth1;
+		i2c0 = &i2c_ddc;
 	};
 
 	sound0 {
@@ -481,6 +482,47 @@
 		*/
         cooling-levels = <51 102 153 204 255>;
     };
+	ec_power:ec_power {
+		compatible = "m5stack,ec_power";
+		uart_port = <&ax_uart3>;
+	};
+
+
+	i2c_ddc: i2c-10 {
+		pinctrl-names = "default";
+		pinctrl-0 = <&gpio4_a19_pins_i2c>, <&gpio4_a20_pins_i2c>;
+		status = "okay";
+		compatible = "i2c-gpio";
+		sda-gpios = <&port4a 20 6>;
+		scl-gpios = <&port4a 19 6>;
+		i2c-gpio,delay-us = <50>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <10000>;
+		i2c-gpio,sda-open-drain;
+		i2c-gpio,scl-open-drain;
+
+
+		es7210: es7210@40 {
+			compatible = "es7210_MicArray_0";
+			reg = <0x40>;
+			#sound-dai-cells = <0>;
+			status = "okay";
+		};
+		es8311: es8311@18 {
+			compatible = "ambarella,es8311";
+			reg = <0x18>;
+			#sound-dai-cells = <0>;
+			mute-gpio = <&port4a 11 0>; 
+			status = "okay";
+		};
+
+		bm8563: bm8563@51 {
+			compatible = "analogtek,at8563";
+			reg = <0x51>;
+			status = "okay";
+		};
+	};
 };
 
 &soc_thm {
@@ -786,45 +828,45 @@
 	status = "okay";
 };
 
-&i2c0 {
-	status = "okay";
-	#address-cells = <0x1>;
-	#size-cells = <0x0>;
-	scl-gpio = <&port4a 19 0>;
-	sda-gpio = <&port4a 20 0>;
-	pinctrl-names = "default", "gpio";
-	pinctrl-0 = <&i2c0_scl_m_pins>, <&i2c0_sda_m_pins>;
-	pinctrl-1 = <&gpio4_a19_pins>, <&gpio4_a20_pins>;
-	clock-frequency = <100000>;
+// &i2c0 {
+// 	status = "okay";
+// 	#address-cells = <0x1>;
+// 	#size-cells = <0x0>;
+// 	scl-gpio = <&port4a 19 0>;
+// 	sda-gpio = <&port4a 20 0>;
+// 	pinctrl-names = "default", "gpio";
+// 	pinctrl-0 = <&i2c0_scl_m_pins>, <&i2c0_sda_m_pins>;
+// 	pinctrl-1 = <&gpio4_a19_pins>, <&gpio4_a20_pins>;
+// 	clock-frequency = <100000>;
 
-	es7210: es7210@40 {
-		compatible = "es7210_MicArray_0";
-		reg = <0x40>;
-		#sound-dai-cells = <0>;
-		status = "okay";
-	};
-	es8311: es8311@18 {
-		compatible = "ambarella,es8311";
-		reg = <0x18>;
-		#sound-dai-cells = <0>;
-		mute-gpio = <&port4a 11 0>; 
-		status = "okay";
-	};
-	bm8563: bm8563@51 {
-		compatible = "analogtek,at8563";
-		reg = <0x51>;
-		status = "okay";
-	};
-	// NC
-	// typec: sgm7220@47 {
-	// 	compatible = "axera,sgm7220";
-	// 	reg = <0x47>;
-	// 	int-gpio = <&port4a 14 0>;
-	// 	chanel-sel = <&port4a 11 0>;
-	// 	bind-usb = "30c00000.dwc3";
-	// 	status = "okay";
-	// };
-};
+// 	es7210: es7210@40 {
+// 		compatible = "es7210_MicArray_0";
+// 		reg = <0x40>;
+// 		#sound-dai-cells = <0>;
+// 		status = "okay";
+// 	};
+// 	es8311: es8311@18 {
+// 		compatible = "ambarella,es8311";
+// 		reg = <0x18>;
+// 		#sound-dai-cells = <0>;
+// 		mute-gpio = <&port4a 11 0>; 
+// 		status = "okay";
+// 	};
+// 	bm8563: bm8563@51 {
+// 		compatible = "analogtek,at8563";
+// 		reg = <0x51>;
+// 		status = "okay";
+// 	};
+// 	// NC
+// 	// typec: sgm7220@47 {
+// 	// 	compatible = "axera,sgm7220";
+// 	// 	reg = <0x47>;
+// 	// 	int-gpio = <&port4a 14 0>;
+// 	// 	chanel-sel = <&port4a 11 0>;
+// 	// 	bind-usb = "30c00000.dwc3";
+// 	// 	status = "okay";
+// 	// };
+// };
 
 &i2c1 {
 	status = "disabled";
